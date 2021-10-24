@@ -85,7 +85,6 @@ export class project extends Base_Scene {
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
 
-        console.log(model_transform[1][3]);
 
         
         if(model_transform[1][3] <= 0.01)
