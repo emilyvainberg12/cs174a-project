@@ -63,6 +63,27 @@ class Base_Scene extends Scene {
 
 export class project extends Base_Scene {
 
+    constructor() {
+        // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
+        super();
+
+        // At the beginning of our program, load one of each of these shape definitions onto the GPU.
+        this.shapes = {
+            torus: new defs.Torus(15, 15),
+            torus2: new defs.Torus(3, 15),
+            sphere: new defs.Subdivision_Sphere(4),
+            circle: new defs.Regular_2D_Polygon(1, 15),
+        };
+
+        // *** Materials
+        this.materials = {
+            test: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+        }
+
+        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(10, 5, 0), vec3(0, 1, 0));
+    }
+
     make_control_panel() {
         this.key_triggered_button("jump", [" "], () => {this.isJumping = true});
 
@@ -102,16 +123,23 @@ export class project extends Base_Scene {
     }
 
     display(context, program_state) {
-        super.display(context, program_state);
+        super.display(context, program_state); // <- commenting out this line of code will result in program crashing
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
+
+        if (!context.scratchpad.controls) {
+            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+            // Define the global camera and projection matrices, which are stored in program_state.
+            program_state.set_camera(this.initial_camera_location);
+        }
+
 
         // Example for drawing a cube, you can remove this line if needed
         if (this.isJumping)
             model_transform = this.jump(program_state, model_transform);
             
         
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:blue}));
+        this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
     }
 } 
