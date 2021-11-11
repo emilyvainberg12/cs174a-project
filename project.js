@@ -28,6 +28,8 @@ class Base_Scene extends Scene {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
         this.isJumping = false;
+
+        this.jumpStartTime = 0;
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
@@ -71,7 +73,11 @@ export class project extends Base_Scene {
 
 
     make_control_panel() {
-        this.key_triggered_button("jump", [" "], () => {this.isJumping = true});
+        this.key_triggered_button("jump", [" "], () => {
+            if(!this.isJumping) //don't want to do a second jump if we are already jumping
+                this.jumpStartTime = this.time;
+            this.isJumping = true;
+        });
 
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
@@ -89,11 +95,11 @@ export class project extends Base_Scene {
     jump(program_state, model_transform, time){
 //         const time = this.t = program_state.animation_time / 1000;
 
-        var x = 4 * (Math.sin(Math.PI*time) + 1);
+        var x = 7 * (Math.sin(Math.PI*(time-this.jumpStartTime)));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
 
-        console.log(time);
+        console.log(this.jumpStartTime);
         
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
