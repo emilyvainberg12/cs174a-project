@@ -32,13 +32,18 @@ class Base_Scene extends Scene {
         this.shapes = {
             'cube': new Cube(),
             
+            sphere: new defs.Subdivision_Sphere(3), //using 3 subdivisions so that you can see the rotation of the sphere
         };
 
         // *** Materials
         this.materials = {
             plastic: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+            test: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
         };
+
+        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(10, 5, 0), vec3(0, 1, 0));
     }
 
     display(context, program_state) {
@@ -63,26 +68,7 @@ class Base_Scene extends Scene {
 
 export class project extends Base_Scene {
 
-    constructor() {
-        // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
-        super();
 
-        // At the beginning of our program, load one of each of these shape definitions onto the GPU.
-        this.shapes = {
-            torus: new defs.Torus(15, 15),
-            torus2: new defs.Torus(3, 15),
-            sphere: new defs.Subdivision_Sphere(4),
-            circle: new defs.Regular_2D_Polygon(1, 15),
-        };
-
-        // *** Materials
-        this.materials = {
-            test: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
-        }
-
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(10, 5, 0), vec3(0, 1, 0));
-    }
 
     make_control_panel() {
         this.key_triggered_button("jump", [" "], () => {this.isJumping = true});
@@ -100,13 +86,14 @@ export class project extends Base_Scene {
        // });
     }
 
-    jump(program_state, model_transform){
-        const t = this.t = program_state.animation_time / 1000;
-        var x = 4 * (Math.sin(Math.PI*t) + 1);
+    jump(program_state, model_transform, time){
+//         const time = this.t = program_state.animation_time / 1000;
+
+        var x = 4 * (Math.sin(Math.PI*time) + 1);
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
 
-
+        console.log(time);
         
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
@@ -133,11 +120,16 @@ export class project extends Base_Scene {
             program_state.set_camera(this.initial_camera_location);
         }
 
+        const time = this.time = program_state.animation_time / 1000;
+
+
 
         // Example for drawing a cube, you can remove this line if needed
         if (this.isJumping)
-            model_transform = this.jump(program_state, model_transform);
+            model_transform = this.jump(program_state, model_transform, time);
             
+        model_transform = model_transform.times(Mat4.rotation(-time*5, 0, 0, 1)); //give the ball an appearance as if it is moving
+
         
         this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
