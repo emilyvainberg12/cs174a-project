@@ -44,8 +44,9 @@ class Base_Scene extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
         };
-
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(10, 5, 0), vec3(0, 1, 0));
+        
+        let camera = Mat4.look_at(vec3(0, 5 , 20), vec3(0, 5, 0), vec3(0, 1, 0));
+        this.initial_camera_location = camera.times(Mat4.translation(-10,0,0)) ;
     }
 
     display(context, program_state) {
@@ -57,7 +58,7 @@ class Base_Scene extends Scene {
 
             //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(5, -10, -30));
+            //program_state.set_camera(Mat4.translation(5, -10, -30));
        }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
@@ -69,7 +70,7 @@ class Base_Scene extends Scene {
 }
 
 export class project extends Base_Scene {
-
+ 
 
 
     make_control_panel() {
@@ -119,26 +120,61 @@ export class project extends Base_Scene {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
-        let model_transform2 = Mat4.identity();
+        let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
+        let model_transform3 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
+        let model_transform4 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
+        let model_transform5 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
+       
 
-        if (!context.scratchpad.controls) {
-            //this.children.push(context.scratchpad.controls = new defs.Movement_Controls()); <- we don't need the camera controls
-            // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(this.initial_camera_location);
-        }
-
+        program_state.set_camera(this.initial_camera_location);
+        
+ 
         const time = this.time = program_state.animation_time / 1000;
 
-
+          
 
         // Example for drawing a cube, you can remove this line if needed
         if (this.isJumping)
             model_transform = this.jump(program_state, model_transform, time);
             
         model_transform = model_transform.times(Mat4.rotation(-time*5, 0, 0, 1)); //give the ball an appearance as if it is moving
-
         
+
+        let h = 2.5; //can change speed with score using h
+
+        let t = -24+24*Math.cos(time/h);
+        let t2 =-24-24*Math.cos(time/h);
+        let t3 =-24+24*Math.cos(time/h + 1.5);
+        let t4 =-24-24*Math.cos(time/h +1.5);
+                
+
+        model_transform2 = model_transform2.times(Mat4.translation(t,0,0)); 
+        model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
+        model_transform4 = model_transform4.times(Mat4.translation(t3,0,0));
+        model_transform5 = model_transform5.times(Mat4.translation(t4,0,0));
+               
+
+        if (-(24/2.5)*Math.sin(time/h) <= 0 )
+        {
+            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.test);
+        }
+        if ((24/2.5)*Math.sin(time/h) <= 0 )
+        {
+             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.test);
+        }
+        if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
+        {
+             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.test);
+        }
+        if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
+        {
+             this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
+        }
+     
         this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
+        
+      
+
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
 
        
