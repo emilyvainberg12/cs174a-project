@@ -76,7 +76,7 @@ export class project extends Base_Scene {
         this.key_triggered_button("jump", [" "], () => {
             if(!this.isJumping) //don't want to do a second jump if we are already jumping
                 this.jumpStartTime = this.time;
-            this.isJumping = true;
+            this.isJumping = true; 
         });
 
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -119,6 +119,7 @@ export class project extends Base_Scene {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
+        let model_transform2 = Mat4.identity();
 
         if (!context.scratchpad.controls) {
             //this.children.push(context.scratchpad.controls = new defs.Movement_Controls()); <- we don't need the camera controls
@@ -139,5 +140,7 @@ export class project extends Base_Scene {
         
         this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
+
+       
     }
 } 
