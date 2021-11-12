@@ -1,7 +1,6 @@
-• Ensure box jumps start at 0 position (currently teleports randomly based off of time)
 • Add grass for character to run through 
 • Full Day cycle will last 1 minute(60 seconds)
-• Add obstacles
+• Have obstacles rotate(to show movement)
 • Game over screen for when you lose
 • Start screen ("press enter/space to start")
 • Maybe add crouching feature(have to crouch under obstacles)
