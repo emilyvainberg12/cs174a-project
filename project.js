@@ -70,7 +70,7 @@ class Base_Scene extends Scene {
 
 export class project extends Base_Scene {
 
-
+    
 
     make_control_panel() {
         this.key_triggered_button("jump", [" "], () => {
@@ -105,6 +105,36 @@ export class project extends Base_Scene {
         return model_transform;
     }
 
+    dino(context, program_state, time)
+    {
+        const blue = hex_color("#1a9ffa");
+        let model_transform = Mat4.identity();
+
+        if (this.isJumping)
+            model_transform = this.jump(program_state, model_transform, time);
+        
+        const dinoRotation = Mat4.rotation(-time*5, 0, 0, 1);
+        const dinoTranslation = Mat4.translation(0, 0, 0);
+            
+        model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
+
+        
+        this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
+    }
+
+    grass(context, program_state)
+    {
+        let model_transform = Mat4.identity();
+        const grass = hex_color("#47F33B");
+        
+        const grassScale = Mat4.scale(20, 0.1, 6);
+        const grassTranslation = Mat4.translation(10, -1, 0);
+
+        model_transform = model_transform.times(grassTranslation).times(grassScale);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
+    }
+
     draw_box(context, program_state, model_transform) {
         // TODO:  Helper function for requirement 3 (see hint).
         //        This should make changes to the model_transform matrix, draw the next box, and return the newest model_transform.
@@ -115,8 +145,7 @@ export class project extends Base_Scene {
 
     display(context, program_state) {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
-        const blue = hex_color("#1a9ffa");
-        let model_transform = Mat4.identity();
+        
 
         if (!context.scratchpad.controls) {
             //this.children.push(context.scratchpad.controls = new defs.Movement_Controls()); <- we don't need the camera controls
@@ -128,28 +157,11 @@ export class project extends Base_Scene {
 
 
         
-        // Example for drawing a cube, you can remove this line if needed
-        if (this.isJumping)
-            model_transform = this.jump(program_state, model_transform, time);
+        this.dino(context, program_state, time);
         
-        const dinoRotation = Mat4.rotation(-time*5, 0, 0, 1);
-        const dinoTranslation = Mat4.translation(0, 0, 0);
-            
-        model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
+        this.grass(context, program_state);
+
 
         
-        this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
-        // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
-
-
-        const grass = hex_color("#47F33B");
-        model_transform = Mat4.identity();
-//         const grassScale = Mat4.scale(5, 0.1, 6);
-        const grassScale = Mat4.scale(20, 0.1, 6);
-        const grassTranslation = Mat4.translation(10, -1, 0);
-
-        model_transform = model_transform.times(grassTranslation).times(grassScale);
-
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
     }
 } 
