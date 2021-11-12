@@ -44,9 +44,10 @@ class Base_Scene extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
         };
-        
-        let camera = Mat4.look_at(vec3(0, 5 , 20), vec3(0, 5, 0), vec3(0, 1, 0));
-        this.initial_camera_location = camera.times(Mat4.translation(-10,0,0)) ;
+
+
+        this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
+
     }
 
     display(context, program_state) {
@@ -70,7 +71,6 @@ class Base_Scene extends Scene {
 }
 
 export class project extends Base_Scene {
- 
 
 
     make_control_panel() {
@@ -99,13 +99,41 @@ export class project extends Base_Scene {
         var x = 7 * (Math.sin(Math.PI*(time-this.jumpStartTime)));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
-
-        console.log(this.jumpStartTime);
         
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
         
         return model_transform;
+    }
+
+    drawDino(context, program_state, time)
+    {
+        const blue = hex_color("#1a9ffa");
+        let model_transform = Mat4.identity();
+
+        if (this.isJumping)
+            model_transform = this.jump(program_state, model_transform, time);
+        
+        const dinoRotation = Mat4.rotation(-time*5, 0, 0, 1);
+        const dinoTranslation = Mat4.translation(0, 0, 0);
+            
+        model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
+
+        
+        this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
+    }
+
+    drawGrass(context, program_state)
+    {
+        let model_transform = Mat4.identity();
+        const grass = hex_color("#47F33B");
+        
+        const grassScale = Mat4.scale(20, 0.1, 6);
+        const grassTranslation = Mat4.translation(10, -1, 0);
+
+        model_transform = model_transform.times(grassTranslation).times(grassScale);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
     }
 
     draw_box(context, program_state, model_transform) {
@@ -118,6 +146,7 @@ export class project extends Base_Scene {
 
     display(context, program_state) {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
+
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
         let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
@@ -131,11 +160,7 @@ export class project extends Base_Scene {
  
         const time = this.time = program_state.animation_time / 1000;
 
-          
-
-        // Example for drawing a cube, you can remove this line if needed
-        if (this.isJumping)
-            model_transform = this.jump(program_state, model_transform, time);
+      
             
         model_transform = model_transform.times(Mat4.rotation(-time*5, 0, 0, 1)); //give the ball an appearance as if it is moving
         
@@ -171,12 +196,20 @@ export class project extends Base_Scene {
              this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
         }
      
-        this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
+       
         
       
 
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
 
        
+
+        
+        this.drawDino(context, program_state, time);
+        
+        this.drawGrass(context, program_state);
+
+
+
     }
 } 
