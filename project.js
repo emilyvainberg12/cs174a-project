@@ -140,7 +140,7 @@ export class project extends Base_Scene {
 
     drawbackground(context, program_state, time)
     {
-        let t = time; 
+        let t = this.time; 
         console.log(t)
         let model_transform = Mat4.identity();
         var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
@@ -218,7 +218,7 @@ export class project extends Base_Scene {
         
       
 
-        const time = this.time = program_state.animation_time / 1000;
+        //const time = this.time = program_state.animation_time / 1000;
         
         
 
@@ -226,8 +226,6 @@ export class project extends Base_Scene {
 
         this.drawbackground(context, program_state, time); 
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
-
-       
 
         this.drawDino(context, program_state, time);
 
