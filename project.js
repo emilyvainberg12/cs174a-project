@@ -66,7 +66,7 @@ class Base_Scene extends Scene {
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(1, 10, 2, 1);
+        const light_position = vec4(-3, 10, -5, .9);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
@@ -80,11 +80,9 @@ export class project extends Base_Scene {
                 this.jumpStartTime = this.time;
             this.isJumping = true; 
         });
-
     }
 
     jump(program_state, model_transform, time){
-//         const time = this.t = program_state.animation_time / 1000;
 
         var x = 7 * (Math.sin(Math.PI*(time-this.jumpStartTime)));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
