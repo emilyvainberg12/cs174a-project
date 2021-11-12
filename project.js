@@ -105,7 +105,7 @@ export class project extends Base_Scene {
         return model_transform;
     }
 
-    dino(context, program_state, time)
+    drawDino(context, program_state, time)
     {
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
@@ -122,7 +122,7 @@ export class project extends Base_Scene {
         this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
     }
 
-    grass(context, program_state)
+    drawGrass(context, program_state)
     {
         let model_transform = Mat4.identity();
         const grass = hex_color("#47F33B");
@@ -157,9 +157,9 @@ export class project extends Base_Scene {
 
 
         
-        this.dino(context, program_state, time);
+        this.drawDino(context, program_state, time);
         
-        this.grass(context, program_state);
+        this.drawGrass(context, program_state);
 
 
         
