@@ -141,12 +141,11 @@ export class project extends Base_Scene {
     drawbackground(context, program_state, time)
     {
         let t = this.time; 
-        console.log(t)
         let model_transform = Mat4.identity();
         var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
         
-        const sky_scale = Mat4.scale(20, 8.3, 2);
-        const sky_translation = Mat4.translation(8, 9, -1);
+        const sky_scale = Mat4.scale(21, 9, 0.1);
+        const sky_translation = Mat4.translation(10, 7.5, -7);
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color(1, -0.5 + 0.5 * sun_scale, -0.5 + 0.5 * sun_scale, 1)}));
