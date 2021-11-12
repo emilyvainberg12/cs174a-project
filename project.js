@@ -55,22 +55,18 @@ class Base_Scene extends Scene {
         if (!context.scratchpad.controls) {
             //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
 
-            //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
-            // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(Mat4.translation(5, -10, -30));
        }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(0, 5, 5, 1);
+        const light_position = vec4(0, 7, 5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
 
 export class project extends Base_Scene {
-
-    
 
     make_control_panel() {
         this.key_triggered_button("jump", [" "], () => {
@@ -124,6 +120,7 @@ export class project extends Base_Scene {
 
     drawGrass(context, program_state)
     {
+      
         let model_transform = Mat4.identity();
         const grass = hex_color("#47F33B");
         
@@ -133,6 +130,22 @@ export class project extends Base_Scene {
         model_transform = model_transform.times(grassTranslation).times(grassScale);
 
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
+    }
+
+    drawbackground(context, program_state, time)
+    {
+        let t = time; 
+        console.log(t)
+        let model_transform = Mat4.identity();
+        var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
+        // var sun_scale = 5 + Math.sin(t *0.9 - (Math.PI * 3));
+        
+        const sky_scale = Mat4.scale(20, 4.66, 5);
+        const sky_translation = Mat4.translation(10, 6, -1);
+
+
+        model_transform = model_transform.times(sky_translation).times(sky_scale);
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color(1, -0.5 + 0.5 * sun_scale, -0.5 + 0.5 * sun_scale, 1)}));
     }
 
     draw_box(context, program_state, model_transform) {
@@ -154,12 +167,14 @@ export class project extends Base_Scene {
         }
 
         const time = this.time = program_state.animation_time / 1000;
-
-
         
+        
+
+        this.drawGrass(context, program_state); 
+
+        this.drawbackground(context, program_state, time); 
+
         this.drawDino(context, program_state, time);
-        
-        this.drawGrass(context, program_state);
 
 
         
