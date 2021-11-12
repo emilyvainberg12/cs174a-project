@@ -45,7 +45,7 @@ class Base_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
         };
 
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(10, 5, 0), vec3(0, 1, 0));
+        this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
     }
 
     display(context, program_state) {
@@ -98,8 +98,6 @@ export class project extends Base_Scene {
         var x = 7 * (Math.sin(Math.PI*(time-this.jumpStartTime)));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
-
-        console.log(this.jumpStartTime);
         
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
@@ -129,15 +127,29 @@ export class project extends Base_Scene {
         const time = this.time = program_state.animation_time / 1000;
 
 
-
+        
         // Example for drawing a cube, you can remove this line if needed
         if (this.isJumping)
             model_transform = this.jump(program_state, model_transform, time);
+        
+        const dinoRotation = Mat4.rotation(-time*5, 0, 0, 1);
+        const dinoTranslation = Mat4.translation(0, 0, 0);
             
-        model_transform = model_transform.times(Mat4.rotation(-time*5, 0, 0, 1)); //give the ball an appearance as if it is moving
+        model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
 
         
         this.shapes.sphere.draw(context, program_state, model_transform, this.materials.test.override({color:blue}));
         // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
+
+
+        const grass = hex_color("#47F33B");
+        model_transform = Mat4.identity();
+//         const grassScale = Mat4.scale(5, 0.1, 6);
+        const grassScale = Mat4.scale(20, 0.1, 6);
+        const grassTranslation = Mat4.translation(10, -1, 0);
+
+        model_transform = model_transform.times(grassTranslation).times(grassScale);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
     }
 } 
