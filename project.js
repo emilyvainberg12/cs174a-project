@@ -121,7 +121,7 @@ export class project extends Base_Scene {
         let model_transform = Mat4.identity();
 
         if (!context.scratchpad.controls) {
-            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+            //this.children.push(context.scratchpad.controls = new defs.Movement_Controls()); <- we don't need the camera controls
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.initial_camera_location);
         }
