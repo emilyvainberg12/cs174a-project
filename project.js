@@ -66,7 +66,7 @@ class Base_Scene extends Scene {
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(0, 7, 5, 1);
+        const light_position = vec4(1, 10, 2, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
@@ -144,11 +144,9 @@ export class project extends Base_Scene {
         console.log(t)
         let model_transform = Mat4.identity();
         var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
-        // var sun_scale = 5 + Math.sin(t *0.9 - (Math.PI * 3));
         
-        const sky_scale = Mat4.scale(20, 4.66, 5);
-        const sky_translation = Mat4.translation(10, 6, -1);
-
+        const sky_scale = Mat4.scale(20, 8.3, 2);
+        const sky_translation = Mat4.translation(8, 9, -1);
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color(1, -0.5 + 0.5 * sun_scale, -0.5 + 0.5 * sun_scale, 1)}));
@@ -213,20 +211,9 @@ export class project extends Base_Scene {
         {
              this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
         }
-     
-       
-        
-      
-
-        //const time = this.time = program_state.animation_time / 1000;
-        
-        
-
+    
         this.drawGrass(context, program_state); 
-
         this.drawbackground(context, program_state, time); 
-        // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
-
         this.drawDino(context, program_state, time);
 
 
