@@ -81,17 +81,6 @@ export class project extends Base_Scene {
             this.isJumping = true; 
         });
 
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
-       // this.key_triggered_button("Change Colors", ["c"], this.set_colors);
-
-        
-        //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
-        // Add a button for controlling the scene.
-
-        //this.key_triggered_button("Sit still", ["m"], () => {
-            // TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off.
-       // });
     }
 
     jump(program_state, model_transform, time){
@@ -151,35 +140,14 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color(1, -0.5 + 0.5 * sun_scale, -0.5 + 0.5 * sun_scale, 1)}));
     }
 
-    draw_box(context, program_state, model_transform) {
-        // TODO:  Helper function for requirement 3 (see hint).
-        //        This should make changes to the model_transform matrix, draw the next box, and return the newest model_transform.
-        // Hint:  You can add more parameters for this function, like the desired color, index of the box, etc.
+    drawObstacles(context, program_state, time)
+    {
+        let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
+        let model_transform3 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
+        let model_transform4 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
+        let model_transform5 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
 
-        return model_transform;
-    }
-
-    display(context, program_state) {
-        super.display(context, program_state); // <- commenting out this line of code will result in program crashing
-
-        const blue = hex_color("#1a9ffa");
-        let model_transform = Mat4.identity();
-        let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
-        let model_transform3 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
-        let model_transform4 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
-        let model_transform5 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,1 ));
-       
-
-        program_state.set_camera(this.initial_camera_location);
         
- 
-        const time = this.time = program_state.animation_time / 1000;
-
-      
-            
-        model_transform = model_transform.times(Mat4.rotation(-time*5, 0, 0, 1)); //give the ball an appearance as if it is moving
-        
-
         let h = 2.5; //can change speed with score using h
 
         let t = -24+24*Math.cos(time/h);
@@ -210,7 +178,20 @@ export class project extends Base_Scene {
         {
              this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
         }
+    }
+
     
+
+    display(context, program_state) {
+        super.display(context, program_state); // <- commenting out this line of code will result in program crashing
+
+        program_state.set_camera(this.initial_camera_location);
+        
+ 
+        const time = this.time = program_state.animation_time / 1000;
+        
+        
+        this.drawObstacles(context, program_state, time);
         this.drawGrass(context, program_state); 
         this.drawbackground(context, program_state, time); 
         this.drawDino(context, program_state, time);
