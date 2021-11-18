@@ -13,3 +13,4 @@ CHARACTER
 change box to character 
 running annimation for character
 maybe use .obj file for character(like the teapot)
+Possibly have character move up and down as well so that he can dodge an object in any of the 4 directions
