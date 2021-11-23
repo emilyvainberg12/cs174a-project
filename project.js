@@ -31,6 +31,11 @@ class Base_Scene extends Scene {
         this.isJumping = false;
 
         this.jumpStartTime = 0;
+
+        this.dinoPosition = [0, 0];
+
+        this.obstacles_model_transform_vector = [Mat4.identity()];
+        this.obstacles_is_showing_vector = [false];
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
@@ -92,7 +97,7 @@ export class project extends Base_Scene {
         var x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
-        
+        // console.log(model_transform);
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
         
@@ -111,6 +116,8 @@ export class project extends Base_Scene {
             
         model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
 
+        this.dinoPosition[0] = model_transform[0][3];   //get x position
+        this.dinoPosition[1] = model_transform[1][3];   //get y positiom
         
         this.shapes.dino.draw(context, program_state, model_transform, this.materials.dino);
     }
@@ -162,24 +169,58 @@ export class project extends Base_Scene {
         model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
         model_transform4 = model_transform4.times(Mat4.translation(t3,0,0));
         model_transform5 = model_transform5.times(Mat4.translation(t4,0,0));
-               
+
+   
+        this.obstacles_model_transform_vector[0] = model_transform2;
+        this.obstacles_model_transform_vector[1] = model_transform3;
+        this.obstacles_model_transform_vector[2] = model_transform4;
+        this.obstacles_model_transform_vector[3] = model_transform5;
+        
+        let len = this.obstacles_model_transform_vector.length;
+        for(let i = 0; i < len; i++)
+        {
+            this.obstacles_is_showing_vector[i] = false;
+        }
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
         {
             this.shapes.cube.draw(context,program_state,model_transform2,this.materials.test);
+            this.obstacles_is_showing_vector[0] = true;
         }
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform3,this.materials.test);
+             this.obstacles_is_showing_vector[1] = true;
         }
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform4,this.materials.test);
+             this.obstacles_is_showing_vector[2] = true;
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
+            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test.override({color: color(1,0,0,1)}));
+            this.obstacles_is_showing_vector[3] = true;
         }
+
+    }
+
+    //returns true if dino collides with anything
+    //returns false otherwise
+    checkForCollision()
+    {
+        // console.log(this.obstacles_model_transform_vector[4][0][3]);
+        const len = this.obstacles_model_transform_vector.length;
+        for(let i = 0; i < len; i++)
+        {
+            //check x positions
+            if(this.obstacles_model_transform_vector[i][0][3] >= -2 && this.obstacles_model_transform_vector[i][0][3] <= 2
+                && this.obstacles_is_showing_vector[i] && this.dinoPosition[1] <= 0.7)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     
@@ -198,6 +239,8 @@ export class project extends Base_Scene {
         this.drawbackground(context, program_state, time); 
         this.drawDino(context, program_state, time);
 
+        if(time >= 3)   //don't want to worry about collisions while everything loads in
+            this.checkForCollision();
 
 
     }
