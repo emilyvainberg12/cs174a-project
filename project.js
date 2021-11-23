@@ -54,7 +54,7 @@ class Base_Scene extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             dino: new Material(new defs.Phong_Shader(),
-                {ambient: 0.3, color: hex_color("#964B00")}),
+                {ambient: 0.3, color: hex_color("#FFFF00")}),   //color is yellow
         };
 
 
