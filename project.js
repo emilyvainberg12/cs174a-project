@@ -36,6 +36,8 @@ class Base_Scene extends Scene {
 
         this.obstacles_model_transform_vector = [Mat4.identity()];
         this.obstacles_is_showing_vector = [false];
+
+        this.gameOver = false;
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
@@ -199,7 +201,7 @@ export class project extends Base_Scene {
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test.override({color: color(1,0,0,1)}));
+            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
             this.obstacles_is_showing_vector[3] = true;
         }
 
@@ -223,6 +225,11 @@ export class project extends Base_Scene {
         return false;
     }
 
+    drawGameOver(context, program_state)
+    {
+        //have some text here that displays a game over screen
+    }
+
     
 
     display(context, program_state) {
@@ -233,14 +240,25 @@ export class project extends Base_Scene {
  
         const time = this.time = program_state.animation_time / 1000;
         
-        
-        this.drawObstacles(context, program_state, time);
-        this.drawGrass(context, program_state); 
-        this.drawbackground(context, program_state, time); 
-        this.drawDino(context, program_state, time);
+        if(!this.gameOver)
+        {
+            this.drawObstacles(context, program_state, time);
+            this.drawGrass(context, program_state); 
+            this.drawbackground(context, program_state, time); 
+            this.drawDino(context, program_state, time);
+        }
+        else
+        {
+            this.drawGameOver(context, program_state);
+        }
 
         if(time >= 3)   //don't want to worry about collisions while everything loads in
-            this.checkForCollision();
+        {
+            if(this.checkForCollision())    //want to be put into a game over state
+            {
+                this.gameOver = true;
+            }
+        }
 
 
     }
