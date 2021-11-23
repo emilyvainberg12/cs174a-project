@@ -3,10 +3,10 @@
     This code is a direct copy from the example code given by Wuyue on his github at:
     https://github.com/Robert-Lu/tiny-graphics-demo4/blob/main/examples/obj-file-demo.js
 */
-import { defs, tiny } from './common.js';
+import { tiny } from './common.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene,
+    vec, vec3, Shape,
 } = tiny;
 
 export class Shape_From_File extends Shape {                                   // **Shape_From_File** is a versatile standalone Shape that imports

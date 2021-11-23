@@ -87,9 +87,9 @@ export class project extends Base_Scene {
         });
     }
 
-    jump(program_state, model_transform, time){
+    jump(model_transform, time){
 
-        var x = 7 * (Math.sin(Math.PI*(time-this.jumpStartTime)));
+        var x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
         
@@ -104,7 +104,7 @@ export class project extends Base_Scene {
         let model_transform = Mat4.identity();
 
         if (this.isJumping)
-            model_transform = this.jump(program_state, model_transform, time);
+            model_transform = this.jump(model_transform, time);
         
         const dinoRotation = Mat4.rotation(Math.PI/2, 0, 1, 0);
         const dinoTranslation = Mat4.translation(0, 0.6, 0);
