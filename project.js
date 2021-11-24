@@ -55,6 +55,8 @@ class Base_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             dino: new Material(new defs.Phong_Shader(),
                 {ambient: 0.3, color: hex_color("#FFFF00")}),   //color is yellow
+            log: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#964B00")}),   //color is brown
         };
 
 
@@ -94,6 +96,7 @@ export class project extends Base_Scene {
         });
     }
 
+
     jump(model_transform, time){
 
         var x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
@@ -104,6 +107,11 @@ export class project extends Base_Scene {
         	this.isJumping = false; 
         
         return model_transform;
+    }
+
+    drawStartScreen(context, program_state)
+    {
+        
     }
 
     drawDino(context, program_state, time)
@@ -186,22 +194,22 @@ export class project extends Base_Scene {
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.test);
+            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log);
             this.obstacles_is_showing_vector[0] = true;
         }
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.test);
+             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log);
              this.obstacles_is_showing_vector[1] = true;
         }
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.test);
+             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log);
              this.obstacles_is_showing_vector[2] = true;
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.test);
+            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log);
             this.obstacles_is_showing_vector[3] = true;
         }
 
