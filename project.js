@@ -1,27 +1,27 @@
 import {defs, tiny} from './common.js';
 import {Shape_From_File} from './load-obj.js';
 
-const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene,
-} = tiny;
+const {Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture, } = tiny;
 
-class Cube extends Shape {
-    constructor() {
-        super("position", "normal",);
-        // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
-        this.arrays.position = Vector3.cast(
-            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
-            [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
-            [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
-        this.arrays.normal = Vector3.cast(
-            [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-            [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-            [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
-        // Arrange the vertices into a square shape in texture space too:
-        this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
-            14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
-    }
-}
+const {Cube, Axis_Arrows, Textured_Phong} = defs
+
+// class Cube extends Shape {
+//     constructor() {
+//         super("position", "normal",);
+//         // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
+//         this.arrays.position = Vector3.cast(
+//             [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
+//             [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
+//             [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
+//         this.arrays.normal = Vector3.cast(
+//             [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
+//             [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
+//             [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
+//         // Arrange the vertices into a square shape in texture space too:
+//         this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
+//             14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
+//     }
+// }
 
 
 class Base_Scene extends Scene {
@@ -37,7 +37,10 @@ class Base_Scene extends Scene {
         this.obstacles_model_transform_vector = [Mat4.identity()];
         this.obstacles_is_showing_vector = [false];
 
+        this.startScreen = true;
         this.gameOver = false;
+
+        this.gameStartTime = 0;
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
@@ -57,6 +60,22 @@ class Base_Scene extends Scene {
                 {ambient: 0.3, color: hex_color("#FFFF00")}),   //color is yellow
             log: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#964B00")}),   //color is brown
+            
+            start_texture: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/start_screen.png")
+            }),
+
+            texture: new Material(new Textured_Phong(),{
+                color: hex_color("#ffffff"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/start_screen.png")
+            }),
         };
 
 
@@ -90,6 +109,11 @@ export class project extends Base_Scene {
 
     make_control_panel() {
         this.key_triggered_button("jump", [" "], () => {
+            if(this.startScreen)
+            {
+                this.startScreen = false;
+                this.gameStartTime = this.time;
+            }
             if(!this.isJumping) //don't want to do a second jump if we are already jumping
                 this.jumpStartTime = this.time;
             this.isJumping = true; 
@@ -111,7 +135,14 @@ export class project extends Base_Scene {
 
     drawStartScreen(context, program_state)
     {
-        
+        let model_transform = Mat4.identity();
+
+        const startTraslate = Mat4.translation(10, 7, -6.9);
+        const startScreenScale = Mat4.scale(10, 6, 0.1);
+
+        model_transform = model_transform.times(startTraslate).times(startScreenScale);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.start_texture);
     }
 
     drawDino(context, program_state, time)
@@ -244,11 +275,19 @@ export class project extends Base_Scene {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
 
         program_state.set_camera(this.initial_camera_location);
+
         
- 
+        
+        
         const time = this.time = program_state.animation_time / 1000;
-        
-        if(!this.gameOver)
+        if(this.startScreen)
+        {
+            this.drawDino(context, program_state, time);
+            this.drawStartScreen(context, program_state);
+            this.drawGrass(context, program_state); 
+            this.drawbackground(context, program_state, time); 
+        }
+        else if(!this.gameOver)
         {
             this.drawObstacles(context, program_state, time);
             this.drawGrass(context, program_state); 
@@ -260,12 +299,10 @@ export class project extends Base_Scene {
             this.drawGameOver(context, program_state);
         }
 
-        if(time >= 3)   //don't want to worry about collisions while everything loads in
+        //don't want to be forced into clipping a log off the initial jump
+        if(this.time - this.gameStartTime >= 2.5 && this.checkForCollision())    //want to be put into a game over state
         {
-            if(this.checkForCollision())    //want to be put into a game over state
-            {
-                this.gameOver = true;
-            }
+            this.gameOver = true;
         }
 
 
