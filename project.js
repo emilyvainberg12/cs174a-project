@@ -234,37 +234,37 @@ export class project extends Base_Scene {
 
         //start sunset
         //increase red value
-        if(t % 60 >= 25)
+        if(t % 60 >= 30)
         {
             backgroundColor = color(
-                Math.sin(Math.PI*t/10 - Math.PI/2), 
+                Math.sin(Math.PI*t/10 - Math.PI), 
                 (200/255.0), 
                 1,
                 1);
         }
         
         //descrease the green and blue values
-        if(t % 60 >= 30)
+        if(t % 60 >= 35)
         {
             backgroundColor = color(
                 1, 
-                (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI/2), 
-                Math.sin(Math.PI*t/10 - Math.PI/2),
+                (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI), 
+                Math.sin(Math.PI*t/10 - Math.PI),
                 1);
         }
 
         //descrease the red value
-        if(t % 60 >= 35)
+        if(t % 60 >= 40)
         {
             backgroundColor = color(
-                Math.sin(Math.PI*t/10 - Math.PI), 
+                Math.sin(Math.PI*t/10 - 3*Math.PI/2), 
                 0, 
                 0,
                 1);
         }
 
         //sky color for night time
-        if(time % 60 >= 40)
+        if(time % 60 >= 45)
             backgroundColor = color(0, 0, 0, 1);
 
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
