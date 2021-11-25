@@ -58,8 +58,6 @@ class Base_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             dino: new Material(new defs.Phong_Shader(),
                 {ambient: 0.3, color: hex_color("#FFFF00")}),   //color is yellow
-            log: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#964B00")}),   //color is brown
             
             start_texture: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
@@ -221,11 +219,18 @@ export class project extends Base_Scene {
         let t3 =-24+24*Math.cos(time/h + 1.5);
         let t4 =-24-24*Math.cos(time/h +1.5);
                 
-
+        //move the logs across the screen
         model_transform2 = model_transform2.times(Mat4.translation(t,0,0)); 
         model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
         model_transform4 = model_transform4.times(Mat4.translation(t3,0,0));
         model_transform5 = model_transform5.times(Mat4.translation(t4,0,0));
+
+        //rotate the logs
+        model_transform2 = model_transform2.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
+        model_transform3 = model_transform3.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
+        model_transform4 = model_transform4.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
+        model_transform5 = model_transform5.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
+
 
    
         this.obstacles_model_transform_vector[0] = model_transform2;
