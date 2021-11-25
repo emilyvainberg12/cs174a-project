@@ -77,12 +77,12 @@ class Base_Scene extends Scene {
                 texture: new Texture("assets/grass_texture.jpg")
             }),
 
-            texture: new Material(new Textured_Phong(),{
-                color: hex_color("#ffffff"),
+            game_over_texture: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/start_screen.png")
+                texture: new Texture("assets/game_over_texture.jpg")
             }),
         };
 
@@ -274,7 +274,14 @@ export class project extends Base_Scene {
 
     drawGameOver(context, program_state)
     {
-        //have some text here that displays a game over screen
+        let model_transform = Mat4.identity();
+
+        const traslate = Mat4.translation(10, 5, -6.9);
+        const scale = Mat4.scale(20, 12, 0.1);
+
+        model_transform = model_transform.times(traslate).times(scale);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.game_over_texture);
     }
 
     
