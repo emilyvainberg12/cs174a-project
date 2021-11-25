@@ -1,7 +1,4 @@
-• Add grass for character to run through 
 • Full Day cycle will last 1 minute(60 seconds)
-• Have obstacles rotate(to show movement)
-• Game over screen for when you lose
 • Maybe add crouching feature(have to crouch under obstacles)
     - instead of crouch use shrink to use scaling properties
 Advanced Feature: background changing (time of day)

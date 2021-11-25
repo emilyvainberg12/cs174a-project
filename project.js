@@ -5,30 +5,13 @@ const {Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4,
 
 const {Cube, Axis_Arrows, Textured_Phong} = defs
 
-// class Cube extends Shape {
-//     constructor() {
-//         super("position", "normal",);
-//         // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
-//         this.arrays.position = Vector3.cast(
-//             [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
-//             [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
-//             [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
-//         this.arrays.normal = Vector3.cast(
-//             [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-//             [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-//             [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
-//         // Arrange the vertices into a square shape in texture space too:
-//         this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
-//             14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
-//     }
-// }
-
 
 class Base_Scene extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
         this.isJumping = false;
+        this.isCrouching = false;
 
         this.jumpStartTime = 0;
 
@@ -132,12 +115,15 @@ export class project extends Base_Scene {
                 this.jumpStartTime = this.time;
             this.isJumping = true; 
         });
+        this.key_triggered_button("crouch", ["Shift"], () => {
+            this.isCrouching = !this.isCrouching;
+        });
     }
 
 
     jump(model_transform, time){
 
-        var x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
+        let x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
         // console.log(model_transform);
@@ -145,6 +131,11 @@ export class project extends Base_Scene {
         	this.isJumping = false; 
         
         return model_transform;
+    }
+
+    crouch(model_transform)
+    {
+        return model_transform.times(Mat4.scale(0.5, 0.5, 0.5));
     }
 
     drawStartScreen(context, program_state)
@@ -168,6 +159,9 @@ export class project extends Base_Scene {
         
         const dinoRotation = Mat4.rotation(Math.PI/2, 0, 1, 0);
         const dinoTranslation = Mat4.translation(0, 0.6, 0);
+
+        if(this.isCrouching)
+            model_transform = this.crouch(model_transform);
             
         model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
 
