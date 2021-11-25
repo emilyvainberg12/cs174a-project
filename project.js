@@ -195,7 +195,47 @@ export class project extends Base_Scene {
         const sky_translation = Mat4.translation(10, 7.5, -7);
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: color(1, -0.5 + 0.5 * sun_scale, -0.5 + 0.5 * sun_scale, 1)}));
+
+        //increase the red value
+        let backgroundColor = color(
+            Math.sin(Math.PI*t/20), 
+            0, 
+            0,
+            1);
+        //increase the green and blue values
+        if(t % 60 >= 10)
+        {
+            backgroundColor = color(
+                1, 
+                (170/255.0)*Math.sin(Math.PI*t/20 - Math.PI/2), 
+                Math.sin(Math.PI*t/20 - Math.PI/2),
+                1);
+        }
+        //descrease the red value
+        if(t % 60 >= 20)
+        {
+            backgroundColor = color(
+                Math.sin(Math.PI*t/20 - Math.PI/2), 
+                (170/255.0), 
+                1,
+                1);
+        }
+
+        if(t % 60 >= 30)
+        {
+            backgroundColor = color(
+                0, 
+                (170/255.0), 
+                1,
+                1);
+        }
+        // backgroundColor = color(1, 165.0/255, -0.5, 1)
+
+        //sky color for night time
+        if(time % 60 >= 40)
+            backgroundColor = color(0.1, 0.1, 0.1, 1);
+
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
     }
 
     drawObstacles(context, program_state, time)
