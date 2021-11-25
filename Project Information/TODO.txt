@@ -1,4 +1,7 @@
-• Full Day cycle will last 1 minute(60 seconds)
+• Have sun(light source) rotate through the sky to simulate how it would during an actual day)
+• Have a moon rise to the surface during nighttime 
+• Have stars in the sky during nighttime 
+
 Advanced Feature: background changing (time of day)
     Shadows change as the sunlight changes
     At the end of the day we have a super starry night and player and collect lots more starts -> maybe if needed 
