@@ -84,6 +84,14 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/game_over_texture.jpg")
             }),
+
+            log_texture: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/wood_log_texture.jpg")
+            }),
         };
 
 
@@ -233,22 +241,22 @@ export class project extends Base_Scene {
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log);
+            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log_texture);
             this.obstacles_is_showing_vector[0] = true;
         }
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log);
+             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log_texture);
              this.obstacles_is_showing_vector[1] = true;
         }
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log);
+             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log_texture);
              this.obstacles_is_showing_vector[2] = true;
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log);
+            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log_texture);
             this.obstacles_is_showing_vector[3] = true;
         }
 
