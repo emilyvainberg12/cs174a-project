@@ -196,35 +196,34 @@ export class project extends Base_Scene {
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
 
-        const period = 10;
 
         //increase the red value
         let backgroundColor = color(
-            Math.sin(Math.PI*t/period), 
+            Math.sin(Math.PI*t/10), 
             0, 
             0,
             1);
         //increase the green and blue values
-        if(t % 60 >= period/2)
+        if(t % 60 >= 5)
         {
             backgroundColor = color(
                 1, 
-                (200/255.0)*Math.sin(Math.PI*t/period - Math.PI/2), 
-                Math.sin(Math.PI*t/period - Math.PI/2),
+                (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI/2), 
+                Math.sin(Math.PI*t/10 - Math.PI/2),
                 1);
         }
         //descrease the red value
-        if(t % 60 >= period)
+        if(t % 60 >= 10)
         {
             backgroundColor = color(
-                Math.sin(Math.PI*t/period - Math.PI/2), 
+                Math.sin(Math.PI*t/10 - Math.PI/2), 
                 (200/255.0), 
                 1,
                 1);
         }
 
         //run the day cycle
-        if(t % 60 >= period * 1.5)
+        if(t % 60 >= 15)
         {
             backgroundColor = color(
                 0, 
@@ -233,20 +232,40 @@ export class project extends Base_Scene {
                 1);
         }
 
+        //start sunset
         //increase red value
-        if(t % 60 >= 40-period*1.5)
+        if(t % 60 >= 25)
         {
             backgroundColor = color(
-                Math.sin(Math.PI*t/period - Math.PI/2), 
+                Math.sin(Math.PI*t/10 - Math.PI/2), 
                 (200/255.0), 
                 1,
                 1);
         }
         
+        //descrease the green and blue values
+        if(t % 60 >= 30)
+        {
+            backgroundColor = color(
+                1, 
+                (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI/2), 
+                Math.sin(Math.PI*t/10 - Math.PI/2),
+                1);
+        }
+
+        //descrease the red value
+        if(t % 60 >= 35)
+        {
+            backgroundColor = color(
+                Math.sin(Math.PI*t/10 - Math.PI), 
+                0, 
+                0,
+                1);
+        }
 
         //sky color for night time
         if(time % 60 >= 40)
-            backgroundColor = color(0.1, 0.1, 0.1, 1);
+            backgroundColor = color(0, 0, 0, 1);
 
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
     }
