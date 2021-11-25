@@ -1,6 +1,4 @@
 • Full Day cycle will last 1 minute(60 seconds)
-• Maybe add crouching feature(have to crouch under obstacles)
-    - instead of crouch use shrink to use scaling properties
 Advanced Feature: background changing (time of day)
     Shadows change as the sunlight changes
     At the end of the day we have a super starry night and player and collect lots more starts -> maybe if needed 
