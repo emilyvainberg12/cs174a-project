@@ -222,7 +222,7 @@ export class project extends Base_Scene {
                 1);
         }
 
-        //run the day cycle
+        //run full day 
         if(t % 60 >= 15)
         {
             backgroundColor = color(
@@ -263,7 +263,7 @@ export class project extends Base_Scene {
                 1);
         }
 
-        //sky color for night time
+        //run full night
         if(time % 60 >= 45)
             backgroundColor = color(0, 0, 0, 1);
 
