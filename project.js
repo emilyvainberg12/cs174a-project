@@ -196,40 +196,53 @@ export class project extends Base_Scene {
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
 
+        const period = 10;
+
         //increase the red value
         let backgroundColor = color(
-            Math.sin(Math.PI*t/20), 
+            Math.sin(Math.PI*t/period), 
             0, 
             0,
             1);
         //increase the green and blue values
-        if(t % 60 >= 10)
+        if(t % 60 >= period/2)
         {
             backgroundColor = color(
                 1, 
-                (170/255.0)*Math.sin(Math.PI*t/20 - Math.PI/2), 
-                Math.sin(Math.PI*t/20 - Math.PI/2),
+                (200/255.0)*Math.sin(Math.PI*t/period - Math.PI/2), 
+                Math.sin(Math.PI*t/period - Math.PI/2),
                 1);
         }
         //descrease the red value
-        if(t % 60 >= 20)
+        if(t % 60 >= period)
         {
             backgroundColor = color(
-                Math.sin(Math.PI*t/20 - Math.PI/2), 
-                (170/255.0), 
+                Math.sin(Math.PI*t/period - Math.PI/2), 
+                (200/255.0), 
                 1,
                 1);
         }
 
-        if(t % 60 >= 30)
+        //run the day cycle
+        if(t % 60 >= period * 1.5)
         {
             backgroundColor = color(
                 0, 
-                (170/255.0), 
+                (200/255.0), 
                 1,
                 1);
         }
-        // backgroundColor = color(1, 165.0/255, -0.5, 1)
+
+        //increase red value
+        if(t % 60 >= 40-period*1.5)
+        {
+            backgroundColor = color(
+                Math.sin(Math.PI*t/period - Math.PI/2), 
+                (200/255.0), 
+                1,
+                1);
+        }
+        
 
         //sky color for night time
         if(time % 60 >= 40)
