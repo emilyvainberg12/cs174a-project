@@ -69,6 +69,14 @@ class Base_Scene extends Scene {
                 texture: new Texture("assets/start_screen.png")
             }),
 
+            grass_texture: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/grass_texture.jpg")
+            }),
+
             texture: new Material(new Textured_Phong(),{
                 color: hex_color("#ffffff"),
                 ambient: 0.5,
@@ -174,7 +182,7 @@ export class project extends Base_Scene {
 
         model_transform = model_transform.times(grassTranslation).times(grassScale);
 
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: grass}));
+        this.shapes.cube.draw(context, program_state, model_transform, this.materials.grass_texture);
     }
 
     drawbackground(context, program_state, time)
