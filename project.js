@@ -98,7 +98,7 @@ class Base_Scene extends Scene {
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(-3, 15*Math.sin(Math.PI*this.time/42), -5, 1);
+        const light_position = vec4(10+(-17)*Math.cos(Math.PI*this.time/45), 15*Math.sin(Math.PI*this.time/42), -5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
