@@ -97,8 +97,10 @@ class Base_Scene extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
+        let t = this.time % 60;
+
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(10+(-17)*Math.cos(Math.PI*this.time/45), 15*Math.sin(Math.PI*this.time/42), -5, 1);
+        const light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
