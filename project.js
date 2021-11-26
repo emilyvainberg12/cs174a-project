@@ -10,6 +10,8 @@ class Base_Scene extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
+        this.time = 0;
+
         this.isJumping = false;
         this.isCrouching = false;
 
@@ -96,7 +98,7 @@ class Base_Scene extends Scene {
             Math.PI / 4, context.width / context.height, 1, 100);
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(-3, 10, -5, .9);
+        const light_position = vec4(-3, 15*Math.sin(Math.PI*this.time/42), -5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     }
 }
