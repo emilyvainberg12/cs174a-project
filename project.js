@@ -99,8 +99,14 @@ class Base_Scene extends Scene {
 
         let t = this.time % 60;
 
+        //hide light source from view
+        if(this.gameOver)
+        {
+            const light_position = vec4(0, -10, -5, 1);
+            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
+        }
         // *** Lights: *** Values of vector or point lights.
-        if(t >= 45) //draw "moon" cycle
+        else if(t >= 45) //draw "moon" cycle
         {
             const light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
             program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
