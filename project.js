@@ -100,8 +100,16 @@ class Base_Scene extends Scene {
         let t = this.time % 60;
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+        if(t >= 45) //draw "moon" cycle
+        {
+            const light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
+            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
+        }
+        else    //draw sun cycle
+        {
+            const light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
+            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+        }
     }
 }
 
