@@ -22,8 +22,15 @@ class Base_Scene extends Scene {
         this.obstacles_model_transform_vector = [Mat4.identity()];
         this.obstacles_is_showing_vector = [false];
 
+        this.rock_transform_vector = [Mat4.identity()];
+        this.rock_is_showing_vector = [false];
+        this.dino_transform = Mat4.identity();
+
         this.startScreen = true;
         this.gameOver = false;
+
+        this.crouch_timer = 0; 
+        this.level = 1;
 
         this.gameStartTime = 0;
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
@@ -65,7 +72,15 @@ class Base_Scene extends Scene {
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/game_over_texture.jpg")
+                texture: new Texture("assets/game_over.png")
+            }),
+
+            rock_texture: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/rock_texture.png")
             }),
 
             log_texture: new Material(new Textured_Phong(),{
@@ -75,9 +90,22 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/wood_log_texture.jpg")
             }),
+            level1: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/level1.png")
+            }),
+
+            level2: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/level2.png")
+            }),
         };
-
-
         this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
 
     }
@@ -129,6 +157,11 @@ export class project extends Base_Scene {
                 this.startScreen = false;
                 this.gameStartTime = this.time;
             }
+            if(this.gameOver){
+                this.startScreen = true;
+                this.gameStartTime = this.time;
+                this.gameOver = false; 
+            }
             if(!this.isJumping) //don't want to do a second jump if we are already jumping
                 this.jumpStartTime = this.time;
             this.isJumping = true; 
@@ -144,7 +177,6 @@ export class project extends Base_Scene {
         let x = 5 * (Math.sin(Math.PI*(time-this.jumpStartTime)/1.5));
         //model_transform  = model_transform.times( Mat4.rotation(x, 0, 0, -1 ) );
         model_transform  = model_transform.times( Mat4.translation(0, x, 0));
-        // console.log(model_transform);
         if(model_transform[1][3] <= 0.01)
         	this.isJumping = false; 
         
@@ -171,17 +203,19 @@ export class project extends Base_Scene {
     drawDino(context, program_state, time)
     {
         let model_transform = Mat4.identity();
+        model_transform = model_transform
 
         if (this.isJumping)
             model_transform = this.jump(model_transform, time);
         
         const dinoRotation = Mat4.rotation(Math.PI/2, 0, 1, 0);
-        const dinoTranslation = Mat4.translation(0, 0.6, 0);
 
         if(this.isCrouching)
             model_transform = this.crouch(model_transform);
             
-        model_transform = model_transform.times(dinoTranslation).times(dinoRotation); //give the ball an appearance as if it is moving
+        model_transform = model_transform.times(dinoRotation); 
+        model_transform = model_transform.times(Mat4.scale(2,2,2)).times(Mat4.translation(0, 1, 0)); //give the ball an appearance as if it is moving
+        this.dino_transform = model_transform; 
 
         this.dinoPosition[0] = model_transform[0][3];   //get x position
         this.dinoPosition[1] = model_transform[1][3];   //get y positiom
@@ -290,6 +324,9 @@ export class project extends Base_Scene {
 
     drawObstacles(context, program_state, time)
     {
+        let rock_transform1 = Mat4.identity().times(Mat4.translation(28,3.5,0));
+        let rock_transform2 = Mat4.identity().times(Mat4.translation(28,4,0));
+
         let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
         let model_transform3 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
         let model_transform4 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
@@ -303,6 +340,7 @@ export class project extends Base_Scene {
         let t3 =-24+24*Math.cos(time/h + 1.5);
         let t4 =-24-24*Math.cos(time/h +1.5);
                 
+        let r = -24+24*Math.cos(time/-2.5);
         //move the logs across the screen
         model_transform2 = model_transform2.times(Mat4.translation(t,0,0)); 
         model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
@@ -315,17 +353,29 @@ export class project extends Base_Scene {
         model_transform4 = model_transform4.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
         model_transform5 = model_transform5.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
 
+        //move the rocks across the screen
+        rock_transform1 = rock_transform1.times(Mat4.translation(-24-24*Math.cos(time/h),0,0)); 
+        rock_transform2 = rock_transform2.times(Mat4.translation(-24+24*Math.cos(time/h+ 1.5),0,0)); 
 
-   
         this.obstacles_model_transform_vector[0] = model_transform2;
         this.obstacles_model_transform_vector[1] = model_transform3;
         this.obstacles_model_transform_vector[2] = model_transform4;
         this.obstacles_model_transform_vector[3] = model_transform5;
+
+        this.rock_transform_vector[0] = rock_transform1;
+        this.rock_transform_vector[1] = rock_transform2;
         
         let len = this.obstacles_model_transform_vector.length;
+        let len2 = this.rock_transform_vector.length;
+
         for(let i = 0; i < len; i++)
         {
             this.obstacles_is_showing_vector[i] = false;
+        }
+
+        for(let i = 0; i < len2; i++)
+        {
+            this.rock_is_showing_vector[i] = false;
         }
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
@@ -333,11 +383,19 @@ export class project extends Base_Scene {
             this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log_texture);
             this.obstacles_is_showing_vector[0] = true;
         }
+        //rock
+        else{
+            this.shapes.sphere.draw(context,program_state,rock_transform1,this.materials.rock_texture);
+            this.rock_is_showing_vector[0] = true;
+        }
+
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log_texture);
              this.obstacles_is_showing_vector[1] = true;
         }
+
+
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log_texture);
@@ -348,6 +406,11 @@ export class project extends Base_Scene {
             this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log_texture);
             this.obstacles_is_showing_vector[3] = true;
         }
+        //rock 
+        else{
+            this.shapes.sphere.draw(context,program_state,rock_transform2,this.materials.rock_texture);
+            this.rock_is_showing_vector[1] = true;
+        }
 
     }
 
@@ -355,17 +418,26 @@ export class project extends Base_Scene {
     //returns false otherwise
     checkForCollision()
     {
-        // console.log(this.obstacles_model_transform_vector[4][0][3]);
         const len = this.obstacles_model_transform_vector.length;
         for(let i = 0; i < len; i++)
         {
             //check x positions
             if(this.obstacles_model_transform_vector[i][0][3] >= -2 && this.obstacles_model_transform_vector[i][0][3] <= 2
-                && this.obstacles_is_showing_vector[i] && this.dinoPosition[1] <= 0.7)
-            {
+                && this.obstacles_is_showing_vector[i] && this.dinoPosition[1] <= 2.1){
                 return true;
             }
         }
+
+        const len2 = this.rock_transform_vector.length;
+        for(let i = 0; i < len2; i++)
+        {
+            // for rock check y positon of dinosaur
+            if (this.rock_transform_vector[i][0][3] >= -0.3 && this.rock_transform_vector[i][0][3] <= 1.5 && 
+                this.rock_is_showing_vector[i] && !this.isCrouching){
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -381,17 +453,55 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.game_over_texture);
     }
 
+    drawlevel(context, program_state){
+        if (this.level == 1){
+            let model_transform = Mat4.identity();
+
+            const startTraslate = Mat4.translation(10, 17, 1);
+            const startScreenScale = Mat4.scale(10, 6, 0.1);
+    
+            model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)); 
+    
+            this.shapes.cube.draw(context, program_state, model_transform, this.materials.level1);
+
+        }
+
+        if (this.level == 2){
+            let model_transform = Mat4.identity();
+
+            const startTraslate = Mat4.translation(10, 17, 1);
+            const startScreenScale = Mat4.scale(10, 6, 0.1);
+    
+            model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)); 
+    
+            this.shapes.cube.draw(context, program_state, model_transform, this.materials.level2);
+
+        }
+    }
+
     
 
     display(context, program_state) {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
 
         program_state.set_camera(this.initial_camera_location);
-
-        
-        
-        
         const time = this.time = program_state.animation_time / 1000;
+
+        console.log(time);
+
+        if (time > 24){
+            this.level = 2; 
+        }
+        
+        if (this.isCrouching){
+            this.crouch_timer += 1; 
+            if (this.crouch_timer == 70){
+                this.crouch(this.dino_transform); 
+                this.isCrouching = false; 
+                this.crouch_timer = 0; 
+            }
+        }
+        
         if(this.startScreen)
         {
             this.drawDino(context, program_state, time);
@@ -405,6 +515,7 @@ export class project extends Base_Scene {
             this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
             this.drawDino(context, program_state, time);
+            this.drawlevel(context, program_state);
         }
         else
         {
