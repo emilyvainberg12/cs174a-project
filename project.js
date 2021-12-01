@@ -3,14 +3,16 @@ import {Shape_From_File} from './load-obj.js';
 
 const {Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture, } = tiny;
 
-const {Cube, Axis_Arrows, Textured_Phong} = defs
-
+const {Cube, Square, Axis_Arrows, Phong_Shader, Textured_Phong, Color_Phong_Shader, Shadow_Textured_Phong_Shader, Depth_Texture_Shader_2D, Buffered_Texture} = defs
+const LIGHT_DEPTH_TEX_SIZE = 2048;
 
 class Base_Scene extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
         this.time = 0;
+
+        this.lightPosition = [0,0,0];
 
         this.isJumping = false;
         this.isCrouching = false;
@@ -40,7 +42,23 @@ class Base_Scene extends Scene {
             sphere: new defs.Subdivision_Sphere(3), //using 3 subdivisions so that you can see the rotation of the sphere
 
             'dino': new Shape_From_File("assets/dino.obj"),
+            'square_2d': new Square(),
         };
+
+         // For the first pass
+        //this.pure = new Material(new Color_Phong_Shader(), {
+        //})
+        // For light source
+        this.light_src = new Material(new Phong_Shader(), {
+            color: color(1, 1, 1, 1), ambient: 1, diffusivity: 0, specularity: 0
+        });
+        // For depth texture display
+        this.depth_tex =  new Material(new Depth_Texture_Shader_2D(), {
+            color: color(0, 0, .0, 1),
+            ambient: 1, diffusivity: 0, specularity: 0, texture: null
+        });
+
+        this.init_ok = false;
 
         // *** Materials
         this.materials = {
@@ -64,7 +82,8 @@ class Base_Scene extends Scene {
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/grass_texture.jpg")
+                texture: new Texture("assets/grass_texture.jpg"),
+                light_depth_texture: null
             }),
 
             game_over_texture: new Material(new Textured_Phong(),{
@@ -83,12 +102,21 @@ class Base_Scene extends Scene {
                 texture: new Texture("assets/rock_texture.png")
             }),
 
-            log_texture: new Material(new Textured_Phong(),{
+            log_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
                 color: hex_color("#000000"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/wood_log_texture.jpg")
+                texture: new Texture("assets/wood_log_texture.jpg"),
+                light_depth_texture: null,
+            }),
+            log_texture2: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/wood_log_texture.jpg"),
+                
             }),
             level1: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
@@ -105,14 +133,89 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/level2.png")
             }),
+
         };
         this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
 
     }
 
-    display(context, program_state) {
-        
+    texture_buffer_init(gl) {
+        // Depth Texture
+        this.lightDepthTexture = gl.createTexture();
+        // Bind it to TinyGraphics
+        this.light_depth_texture = new Buffered_Texture(this.lightDepthTexture);
+        this.materials.log_texture.light_depth_texture = this.light_depth_texture;
+        //this.materials.floor.light_depth_texture = this.light_depth_texture;
 
+        this.lightDepthTextureSize = LIGHT_DEPTH_TEX_SIZE;
+        gl.bindTexture(gl.TEXTURE_2D, this.lightDepthTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,      // target
+            0,                  // mip level
+            gl.DEPTH_COMPONENT, // internal format
+            this.lightDepthTextureSize,   // width
+            this.lightDepthTextureSize,   // height
+            0,                  // border
+            gl.DEPTH_COMPONENT, // format
+            gl.UNSIGNED_INT,    // type
+            null);              // data
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Depth Texture Buffer
+        this.lightDepthFramebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,       // target
+            gl.DEPTH_ATTACHMENT,  // attachment point
+            gl.TEXTURE_2D,        // texture target
+            this.lightDepthTexture,         // texture
+            0);                   // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // create a color texture of the same size as the depth texture
+        // see article why this is needed_
+        this.unusedTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.unusedTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            this.lightDepthTextureSize,
+            this.lightDepthTextureSize,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null,
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // attach it to the framebuffer
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,        // target
+            gl.COLOR_ATTACHMENT0,  // attachment point
+            gl.TEXTURE_2D,         // texture target
+            this.unusedTexture,         // texture
+            0);                    // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    display(context, program_state) {
+        const gl = context.context;
+        
+         if (!this.init_ok) {
+            const ext = gl.getExtension('WEBGL_depth_texture');
+            if (!ext) {
+                return alert('need WEBGL_depth_texture');  // eslint-disable-line
+            }
+            this.texture_buffer_init(gl);
+
+            this.init_ok = true;
+        }
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
             //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
@@ -131,20 +234,54 @@ class Base_Scene extends Scene {
         if(this.gameOver)
         {
             const light_position = vec4(0, -10, -5, 1);
+             this.lightPosition = light_position;
             program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
         }
         // *** Lights: *** Values of vector or point lights.
         else if(t >= 45) //draw "moon" cycle
         {
             const light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
+            this.lightPosition = light_position;
             program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
         }
         else    //draw sun cycle
         {
             const light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
+            this.lightPosition = light_position;
             program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
         }
+
+        this.light_view_target = vec4(0, 0, 0, 1);
+        this.light_field_of_view = 130 * Math.PI / 180; // 130 degree
+
+       // Step 1: set the perspective and camera to the POV of light
+        const light_view_mat = Mat4.look_at(
+            vec3(this.lightPosition[0], this.lightPosition[1], this.lightPosition[2]),
+            vec3(this.light_view_target[0], this.light_view_target[1], this.light_view_target[2]),
+            vec3(0, 1, 0), // assume the light to target will have a up dir of +y, maybe need to change according to your case
+        );
+        const light_proj_mat = Mat4.perspective(this.light_field_of_view, 1, 0.5, 500);
+        // Bind the Depth Texture Buffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.viewport(0, 0, this.lightDepthTextureSize, this.lightDepthTextureSize);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // Prepare uniforms
+        program_state.light_view_mat = light_view_mat;
+        program_state.light_proj_mat = light_proj_mat;
+        program_state.light_tex_mat = light_proj_mat;
+        program_state.view_mat = light_view_mat;
+        program_state.projection_transform = light_proj_mat;
+        //this.render_scene(context, program_state, false,false, false);
+
+        // Step 2: unbind, draw to the canvas
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        program_state.view_mat = program_state.camera_inverse;
+        program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.5, 500);
+        //this.render_scene(context, program_state, true,true, true);
     }
+
+        
 }
 
 export class project extends Base_Scene {
@@ -322,7 +459,7 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
     }
 
-    drawObstacles(context, program_state, time)
+    drawObstacles(context, program_state, time,shadow_pass)
     {
         let rock_transform1 = Mat4.identity().times(Mat4.translation(28,3.5,0));
         let rock_transform2 = Mat4.identity().times(Mat4.translation(28,4,0));
@@ -380,7 +517,7 @@ export class project extends Base_Scene {
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log_texture);
+            this.shapes.cube.draw(context,program_state,model_transform2, shadow_pass? this.materials.log_texture: this.log_texture2);
             this.obstacles_is_showing_vector[0] = true;
         }
         //rock
@@ -391,19 +528,19 @@ export class project extends Base_Scene {
 
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log_texture);
+             this.shapes.cube.draw(context,program_state,model_transform3,shadow_pass? this.materials.log_texture: this.log_texture2);
              this.obstacles_is_showing_vector[1] = true;
         }
 
 
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log_texture);
+             this.shapes.cube.draw(context,program_state,model_transform4,shadow_pass? this.log_texture2: this.materials.log_texture);
              this.obstacles_is_showing_vector[2] = true;
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log_texture);
+            this.shapes.cube.draw(context,program_state,model_transform5,shadow_pass? this.materials.log_texture: this.log_texture2);
             this.obstacles_is_showing_vector[3] = true;
         }
         //rock 
@@ -481,9 +618,14 @@ export class project extends Base_Scene {
 
     
 
-    display(context, program_state) {
+    display(context, program_state, shadow_pass, draw_light_source = false, draw_shadow = false) {
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
+        let light_position = this.light_position;
+        let light_color = this.light_color;
+        const gl = context.context;
 
+        //const t = program_state.animation_time;
+        program_state.draw_shadow = draw_shadow;
         program_state.set_camera(this.initial_camera_location);
         const time = this.time = program_state.animation_time / 1000;
 
@@ -511,7 +653,7 @@ export class project extends Base_Scene {
         }
         else if(!this.gameOver)
         {
-            this.drawObstacles(context, program_state, time);
+            this.drawObstacles(context, program_state, time,shadow_pass);
             this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
             this.drawDino(context, program_state, time);
@@ -528,6 +670,6 @@ export class project extends Base_Scene {
             this.gameOver = true;
         }
 
-
     }
 } 
+
