@@ -17,6 +17,8 @@ class Base_Scene extends Scene {
 
         this.jumpStartTime = 0;
 
+        this.game_time = 0; 
+
         this.dinoPosition = [0, 0];
 
         this.obstacles_model_transform_vector = [Mat4.identity()];
@@ -49,7 +51,7 @@ class Base_Scene extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             dino: new Material(new defs.Phong_Shader(),
-                {ambient: 0.3, color: hex_color("#FFFF00")}),   //color is yellow
+                {ambient: 0.3, color: hex_color("#00FF00")}),   //color is yellow
             
             start_texture: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
@@ -105,6 +107,13 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/level2.png")
             }),
+            level3: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/level3.jpg")
+            }),
         };
         this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
 
@@ -158,8 +167,8 @@ export class project extends Base_Scene {
                 this.gameStartTime = this.time;
             }
             if(this.gameOver){
+                this.game_time = 0; 
                 this.startScreen = true;
-                this.gameStartTime = this.time;
                 this.gameOver = false; 
             }
             if(!this.isJumping) //don't want to do a second jump if we are already jumping
@@ -454,28 +463,24 @@ export class project extends Base_Scene {
     }
 
     drawlevel(context, program_state){
+
+        let model_transform = Mat4.identity();
+
+        const startTraslate = Mat4.translation(10, 17, 1);
+        const startScreenScale = Mat4.scale(10, 6, 0.1);
+
+        model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)).times((Mat4.scale(2,1,.1))); 
+
+
         if (this.level == 1){
-            let model_transform = Mat4.identity();
-
-            const startTraslate = Mat4.translation(10, 17, 1);
-            const startScreenScale = Mat4.scale(10, 6, 0.1);
-    
-            model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)); 
-    
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.level1);
-
         }
 
         if (this.level == 2){
-            let model_transform = Mat4.identity();
-
-            const startTraslate = Mat4.translation(10, 17, 1);
-            const startScreenScale = Mat4.scale(10, 6, 0.1);
-    
-            model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)); 
-    
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.level2);
-
+        }
+        if (this.level == 3){
+            this.shapes.cube.draw(context, program_state, model_transform, this.materials.level3);
         }
     }
 
@@ -487,12 +492,27 @@ export class project extends Base_Scene {
         program_state.set_camera(this.initial_camera_location);
         const time = this.time = program_state.animation_time / 1000;
 
-        console.log(time);
-
-        if (time > 24){
-            this.level = 2; 
-        }
         
+        this.game_time += 1/20; 
+
+        console.log(this.game_time);
+
+        if (this.game_time < 50){
+            this.level = 1; 
+            this.drawlevel(context, program_state);
+        }
+
+        if (this.game_time > 50){
+            this.level = 2; 
+            this.drawlevel(context, program_state);
+        }
+
+        if (this.game_time > 100){
+            this.level = 3; 
+            this.drawlevel(context, program_state);
+        }
+
+
         if (this.isCrouching){
             this.crouch_timer += 1; 
             if (this.crouch_timer == 70){
@@ -515,7 +535,6 @@ export class project extends Base_Scene {
             this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
             this.drawDino(context, program_state, time);
-            this.drawlevel(context, program_state);
         }
         else
         {
@@ -527,7 +546,5 @@ export class project extends Base_Scene {
         {
             this.gameOver = true;
         }
-
-
     }
 } 
