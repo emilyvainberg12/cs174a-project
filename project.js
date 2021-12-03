@@ -19,6 +19,9 @@ class Base_Scene extends Scene {
         this.isJumping = false;
         this.isCrouching = false;
 
+        // For the first pass
+        this.pure = new Material(new Color_Phong_Shader(), {})
+
         this.jumpStartTime = 0;
 
         this.dinoPosition = [0, 0];
@@ -77,6 +80,7 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/start_screen.png")
             }),
+            
 
             grass_texture: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
@@ -103,22 +107,23 @@ class Base_Scene extends Scene {
                 texture: new Texture("assets/rock_texture.png")
             }),
 
-            log_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
+
+            log_texture: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/wood_log_texture.jpg"),
+                texture: new Texture("assets/wood_log_texture.jpg")
+            }),
+
+            shadow_log_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
                 light_depth_texture: null,
             }),
-            log_texture2: new Material(new Textured_Phong(),{
-                color: hex_color("#000000"),
-                ambient: 0.5,
-                diffusivity: 0.1,
-                specularity: 0.1,
-                texture: new Texture("assets/wood_log_texture.jpg"),
-                
-            }),
+            
             level1: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
                 ambient: 0.5,
@@ -460,8 +465,15 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
     }
 
-    drawObstacles(context, program_state, time,shadow_pass)
+    drawObstacles(context, program_state, time,shadow_pass, draw_light_source)
     {
+
+        if (draw_light_source && shadow_pass) {
+            this.shapes.sphere.draw(context, program_state,
+            Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.5,.5,.5)),
+            this.light_src.override({color: light_color}));
+        }
+
         let rock_transform1 = Mat4.identity().times(Mat4.translation(28,3.5,0));
         let rock_transform2 = Mat4.identity().times(Mat4.translation(28,4,0));
 
@@ -518,7 +530,8 @@ export class project extends Base_Scene {
 
         if (-(24/2.5)*Math.sin(time/h) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform2, shadow_pass? this.materials.log_texture: this.log_texture2);
+            this.shapes.cube.draw(context, program_state, model_transform2, shadow_pass? this.materials.shadow_log_texture : this.pure);
+            //this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log_texture);
             this.obstacles_is_showing_vector[0] = true;
         }
         //rock
@@ -529,19 +542,19 @@ export class project extends Base_Scene {
 
         if ((24/2.5)*Math.sin(time/h) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform3,shadow_pass? this.materials.log_texture: this.log_texture2);
+             this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log_texture);
              this.obstacles_is_showing_vector[1] = true;
         }
 
 
         if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-             this.shapes.cube.draw(context,program_state,model_transform4,shadow_pass? this.log_texture2: this.materials.log_texture);
+             this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log_texture);
              this.obstacles_is_showing_vector[2] = true;
         }
         if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
         {
-            this.shapes.cube.draw(context,program_state,model_transform5,shadow_pass? this.materials.log_texture: this.log_texture2);
+            this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log_texture);
             this.obstacles_is_showing_vector[3] = true;
         }
         //rock 
@@ -620,6 +633,7 @@ export class project extends Base_Scene {
     
 
     display(context, program_state, shadow_pass, draw_light_source = false, draw_shadow = false) {
+
         super.display(context, program_state); // <- commenting out this line of code will result in program crashing
         let light_position = this.light_position;
         let light_color = this.light_color;
@@ -654,7 +668,7 @@ export class project extends Base_Scene {
         }
         else if(!this.gameOver)
         {
-            this.drawObstacles(context, program_state, time,shadow_pass);
+            this.drawObstacles(context, program_state, time, shadow_pass, draw_light_source);
             this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
             this.drawDino(context, program_state, time);
