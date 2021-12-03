@@ -135,12 +135,7 @@ class Base_Scene extends Scene {
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
-            //this.key_triggered_button("Right", ["d"], () => this.thrust[0] = -1, undefined, () => this.thrust[0] = 0);
-
             program_state.set_camera(Mat4.translation(5, -10, -30));
-            //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
-            // Define the global camera and projection matrices, which are stored in program_state.
-            //program_state.set_camera(Mat4.translation(5, -10, -30));
        }
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
@@ -363,8 +358,6 @@ export class project extends Base_Scene {
     {
         let rock_transform1 = Mat4.identity().times(Mat4.translation(28,4,0));
         let rock_transform2 = Mat4.identity().times(Mat4.translation(28,4,0));
-        //let rock_transform3 = Mat4.identity().times(Mat4.translation(28,4,0));
-        //let rock_transform4 = Mat4.identity().times(Mat4.translation(28,4,0));
 
 
         let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
@@ -393,10 +386,7 @@ export class project extends Base_Scene {
 
         let r = -24+24*Math.cos(time/h - 1);
         let r2 =-24-24*Math.cos(time/h - 1);
-        //let r3 =-24+24*Math.cos(time/h + .75);
-        //let r4 =-24-24*Math.cos(time/h + .75);
-                
-        //let r = -24+24*Math.cos(time/-2.5);
+
         //move the logs across the screen
         model_transform2 = model_transform2.times(Mat4.translation(t,0,0)); 
         model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
@@ -412,8 +402,6 @@ export class project extends Base_Scene {
         //move the rocks across the screen
         rock_transform1 = rock_transform1.times(Mat4.translation(r,0,0)); 
         rock_transform2 = rock_transform2.times(Mat4.translation(r2,0,0));
-        //rock_transform3 = rock_transform3.times(Mat4.translation(r3,0,0)); 
-        //rock_transform4 = rock_transform4.times(Mat4.translation(r4,0,0)); 
 
         this.obstacles_model_transform_vector[0] = model_transform2;
         this.obstacles_model_transform_vector[1] = model_transform3;
@@ -422,8 +410,6 @@ export class project extends Base_Scene {
 
         this.rock_transform_vector[0] = rock_transform1;
         this.rock_transform_vector[1] = rock_transform2;
-        //this.rock_transform_vector[1] = rock_transform3;
-        //this.rock_transform_vector[3] = rock_transform4;
         
         let len = this.obstacles_model_transform_vector.length;
         let len2 = this.rock_transform_vector.length;
@@ -470,14 +456,6 @@ export class project extends Base_Scene {
             this.shapes.sphere.draw(context,program_state,rock_transform2,this.materials.rock_texture);
             this.rock_is_showing_vector[1] = true;
         }
-        /*if ((24/h)*Math.sin(time/h + 0.75) >= 0 ){
-            this.shapes.sphere.draw(context,program_state,rock_transform3,this.materials.rock_texture);
-            this.rock_is_showing_vector[0] = true;
-        }
-        if (-(24/h)*Math.sin(time/h + 0.75) >= 0 ){
-            this.shapes.sphere.draw(context,program_state,rock_transform4,this.materials.rock_texture);
-            this.rock_is_showing_vector[0] = true;
-        }*/
        
     }
 
@@ -520,7 +498,7 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.game_over_texture);
     }
 
-    drawlevel(context, program_state){
+    drawlevel(context, program_state, the_level){
 
         let model_transform = Mat4.identity();
 
@@ -530,14 +508,14 @@ export class project extends Base_Scene {
         model_transform = model_transform.times(Mat4.translation(17, 9, 1)).times(Mat4.translation(2,2,.1)).times((Mat4.scale(2,1,.1))); 
 
 
-        if (this.level == 1){
+        if (the_level == 1){
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.level1);
         }
 
-        if (this.level == 2){
+        if (the_level == 2){
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.level2);
         }
-        if (this.level == 3){
+        if (the_level == 3){
             this.shapes.cube.draw(context, program_state, model_transform, this.materials.level3);
         }
     }
@@ -549,25 +527,22 @@ export class project extends Base_Scene {
 
         program_state.set_camera(this.initial_camera_location);
         const time = this.time = program_state.animation_time / 1000;
-
-        
+     
         this.game_time += 1/20; 
-
-        console.log(this.game_time);
 
         if (this.game_time < 50){
             this.level = 1; 
-            this.drawlevel(context, program_state);
+            
         }
 
         if (this.game_time > 50){
             this.level = 2; 
-            this.drawlevel(context, program_state);
+            //this.drawlevel(context, program_state);
         }
 
         if (this.game_time > 100){
             this.level = 3; 
-            this.drawlevel(context, program_state);
+            //this.drawlevel(context, program_state);
         }
 
 
@@ -589,6 +564,7 @@ export class project extends Base_Scene {
         }
         else if(!this.gameOver)
         {
+            this.drawlevel(context, program_state, this.level);
             this.drawObstacles(context, program_state, time);
             this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
