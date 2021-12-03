@@ -14,6 +14,7 @@ class Base_Scene extends Scene {
 
         this.isJumping = false;
         this.isCrouching = false;
+        this.nights = false;
 
         this.jumpStartTime = 0;
 
@@ -38,11 +39,14 @@ class Base_Scene extends Scene {
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             'cube': new Cube(),
+            'sky': new Cube(),
             
             sphere: new defs.Subdivision_Sphere(3), //using 3 subdivisions so that you can see the rotation of the sphere
 
             'dino': new Shape_From_File("assets/dino.obj"),
         };
+        
+
 
         // *** Materials
         this.materials = {
@@ -114,6 +118,13 @@ class Base_Scene extends Scene {
                 specularity: 0.1,
                 texture: new Texture("assets/level3.jpg")
             }),
+            night_sky: new Material(new Textured_Phong(),{
+                color: hex_color("#000000"),
+                ambient: 0.5,
+                diffusivity: 0.1,
+                specularity: 0.1,
+                texture: new Texture("assets/stars.jpg")
+            }),
         };
         this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
 
@@ -147,6 +158,7 @@ class Base_Scene extends Scene {
         {
             const light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
             program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
+            //this.nights = true;
         }
         else    //draw sun cycle
         {
@@ -257,14 +269,14 @@ export class project extends Base_Scene {
 
         model_transform = model_transform.times(sky_translation).times(sky_scale);
 
-
+        this.nights = false;
         //increase the red value
         let backgroundColor = color(
             Math.sin(Math.PI*t/10), 
             0, 
             0,
             1);
-        //increase the green and blue values
+                //increase the green and blue values
         if(t % 60 >= 5)
         {
             backgroundColor = color(
@@ -272,6 +284,7 @@ export class project extends Base_Scene {
                 (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI/2), 
                 Math.sin(Math.PI*t/10 - Math.PI/2),
                 1);
+                this.nights = false;
         }
         //descrease the red value
         if(t % 60 >= 10)
@@ -281,6 +294,7 @@ export class project extends Base_Scene {
                 (200/255.0), 
                 1,
                 1);
+                this.nights= false;
         }
 
         //run full day 
@@ -291,6 +305,7 @@ export class project extends Base_Scene {
                 (200/255.0), 
                 1,
                 1);
+                this.nights = false;
         }
 
         //start sunset
@@ -302,6 +317,7 @@ export class project extends Base_Scene {
                 (200/255.0), 
                 1,
                 1);
+                this.nights = false;
         }
         
         //descrease the green and blue values
@@ -312,6 +328,7 @@ export class project extends Base_Scene {
                 (200/255.0)*Math.sin(Math.PI*t/10 - Math.PI), 
                 Math.sin(Math.PI*t/10 - Math.PI),
                 1);
+                this.nights = false;
         }
 
         //descrease the red value
@@ -322,13 +339,24 @@ export class project extends Base_Scene {
                 0, 
                 0,
                 1);
+                this.nights = false;
         }
 
         //run full night
-        if(time % 60 >= 45)
+        if(time % 60 >= 45)  {
             backgroundColor = color(0, 0, 0, 1);
+            this.nights = true;
+        }
 
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
+        if (this.nights == true)
+        {
+            this.shapes.sky.draw(context, program_state, model_transform, this.materials.night_sky);
+        }
+        else
+        {
+            this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color: backgroundColor}));
+        }
+        
     }
 
     drawObstacles(context, program_state, time)
@@ -578,3 +606,4 @@ export class project extends Base_Scene {
         }
     }
 } 
+
