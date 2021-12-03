@@ -1,10 +1,12 @@
 import {defs, tiny} from './common.js';
 import {Shape_From_File} from './load-obj.js';
+import {Color_Phong_Shader, Shadow_Textured_Phong_Shader,
+    Depth_Texture_Shader_2D, Buffered_Texture, LIGHT_DEPTH_TEX_SIZE} from './shadow-demo-shaders.js'
 
 const {Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture, } = tiny;
 
-const {Cube, Square, Axis_Arrows, Phong_Shader, Textured_Phong, Color_Phong_Shader, Shadow_Textured_Phong_Shader, Depth_Texture_Shader_2D, Buffered_Texture} = defs
-const LIGHT_DEPTH_TEX_SIZE = 2048;
+const {Cube, Axis_Arrows, Textured_Phong} = defs
+
 
 class Base_Scene extends Scene {
     constructor() {
@@ -42,14 +44,13 @@ class Base_Scene extends Scene {
             sphere: new defs.Subdivision_Sphere(3), //using 3 subdivisions so that you can see the rotation of the sphere
 
             'dino': new Shape_From_File("assets/dino.obj"),
-            'square_2d': new Square(),
         };
 
          // For the first pass
         //this.pure = new Material(new Color_Phong_Shader(), {
         //})
         // For light source
-        this.light_src = new Material(new Phong_Shader(), {
+        this.light_src = new Material(new defs.Phong_Shader(), {
             color: color(1, 1, 1, 1), ambient: 1, diffusivity: 0, specularity: 0
         });
         // For depth texture display
