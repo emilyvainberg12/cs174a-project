@@ -67,7 +67,7 @@ class Base_Scene extends Scene {
             }),
 
             grass_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
-                color: hex_color("#AFFFFF"),
+                color: hex_color("#AFFFFF"),//hex_color("#FFFFFF"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
