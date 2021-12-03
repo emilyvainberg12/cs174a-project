@@ -391,8 +391,8 @@ export class project extends Base_Scene {
         let t3 =-24+24*Math.cos(time/h + 1.5);
         let t4 =-24-24*Math.cos(time/h +1.5);
 
-        let r = -24+24*Math.cos(time/h - 0.75);
-        let r2 =-24-24*Math.cos(time/h - 0.75);
+        let r = -24+24*Math.cos(time/h - 1);
+        let r2 =-24-24*Math.cos(time/h - 1);
         //let r3 =-24+24*Math.cos(time/h + .75);
         //let r4 =-24-24*Math.cos(time/h + .75);
                 
@@ -462,11 +462,11 @@ export class project extends Base_Scene {
             this.obstacles_is_showing_vector[3] = true;
         }
         //rock
-        if ((24/h)*Math.sin(time/h - 0.75) >= 0 ){
+        if ((24/h)*Math.sin(time/h - 1) >= 0 ){
             this.shapes.sphere.draw(context,program_state,rock_transform1,this.materials.rock_texture);
             this.rock_is_showing_vector[0] = true;
         }
-        if (-(24/h)*Math.sin(time/h-0.75) >= 0 ){
+        if (-(24/h)*Math.sin(time/h-1) >= 0 ){
             this.shapes.sphere.draw(context,program_state,rock_transform2,this.materials.rock_texture);
             this.rock_is_showing_vector[1] = true;
         }
