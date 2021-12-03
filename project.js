@@ -42,7 +42,7 @@ class Base_Scene extends Scene {
         this.shapes = {
             'cube': new Cube(),
             
-            sphere: new defs.Subdivision_Sphere(3), //using 3 subdivisions so that you can see the rotation of the sphere
+            sphere: new defs.Subdivision_Sphere(6),
 
             'dino': new Shape_From_File("assets/dino.obj"),
         };
@@ -67,12 +67,12 @@ class Base_Scene extends Scene {
             }),
 
             grass_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
-                color: hex_color("#000000"),
+                color: hex_color("#AFFFFF"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
                 smoothness: 64,
-                color_texture: new Texture("assets/grass_texture.jpg"),
+                color_texture: null,//new Texture("assets/grass_texture.jpg"),
                 light_depth_texture: null
             }),
 
@@ -253,6 +253,11 @@ class Base_Scene extends Scene {
             this.light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
             program_state.lights = [new Light(this.light_position, color(1, 1, 1, 1), 1000)];
         }
+
+        // this.light_position = vec4(5, 5, -3, 1);
+        //     program_state.lights = [new Light(this.light_position, color(1, 1, 1, 1), 1000)];
+
+        
     }
 }
 
@@ -350,7 +355,7 @@ export class project extends Base_Scene {
     {
         let t = this.time; 
         let model_transform = Mat4.identity();
-        var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
+        // var sun_scale = 4 + Math.sin(t/3 - (Math.PI));
         
         const sky_scale = Mat4.scale(21, 9, 0.1);
         const sky_translation = Mat4.translation(10, 7.5, -7);
@@ -596,9 +601,8 @@ export class project extends Base_Scene {
         program_state.draw_shadow = draw_shadow;
 
         if (draw_light_source && shadow_pass) {
-            // this.shapes.sphere.draw(context, program_state,
-            //     Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.5,.5,.5)),
-            //     this.light_src.override({color: light_color}));
+            this.shapes.sphere.draw(context, program_state,
+                Mat4.translation(light_position[0], light_position[1], light_position[2]), this.light_src);
         }
         this.drawDino(context, program_state, t, shadow_pass);
 
@@ -684,20 +688,20 @@ export class project extends Base_Scene {
 
         // console.log(this.game_time);
 
-        if (this.game_time < 50){
-            this.level = 1; 
-            this.drawlevel(context, program_state);
-        }
+        // if (this.game_time < 50){
+        //     this.level = 1; 
+        //     this.drawlevel(context, program_state);
+        // }
 
-        if (this.game_time > 50){
-            this.level = 2; 
-            this.drawlevel(context, program_state);
-        }
+        // if (this.game_time > 50){
+        //     this.level = 2; 
+        //     this.drawlevel(context, program_state);
+        // }
 
-        if (this.game_time > 100){
-            this.level = 3; 
-            this.drawlevel(context, program_state);
-        }
+        // if (this.game_time > 100){
+        //     this.level = 3; 
+        //     this.drawlevel(context, program_state);
+        // }
 
 
         if (this.isCrouching){
@@ -712,9 +716,9 @@ export class project extends Base_Scene {
         if(this.startScreen)
         {
             // this.drawDino(context, program_state, time);
-            this.drawStartScreen(context, program_state);
+            // this.drawStartScreen(context, program_state);
             // this.drawGrass(context, program_state); 
-            this.drawbackground(context, program_state, time); 
+            // this.drawbackground(context, program_state, time); 
         }
         else if(!this.gameOver)
         {
