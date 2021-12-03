@@ -333,8 +333,11 @@ export class project extends Base_Scene {
 
     drawObstacles(context, program_state, time)
     {
-        let rock_transform1 = Mat4.identity().times(Mat4.translation(28,3.5,0));
+        let rock_transform1 = Mat4.identity().times(Mat4.translation(28,4,0));
         let rock_transform2 = Mat4.identity().times(Mat4.translation(28,4,0));
+        //let rock_transform3 = Mat4.identity().times(Mat4.translation(28,4,0));
+        //let rock_transform4 = Mat4.identity().times(Mat4.translation(28,4,0));
+
 
         let model_transform2 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
         let model_transform3 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
@@ -342,14 +345,30 @@ export class project extends Base_Scene {
         let model_transform5 = Mat4.identity().times(Mat4.translation(28,0,0)).times(Mat4.scale(0.8,1,6 ));
 
         
-        let h = 2.5; //can change speed with score using h
+        let h = 2.5;
+        let k = 3;
+        if (this.level == 2){
+            h = 2;
+            k = 2.5;
+        }
+        if (this.level == 3){
+            h = 1.5;
+            k = 2;
+        }
+
+        //can change speed with score using h
 
         let t = -24+24*Math.cos(time/h);
         let t2 =-24-24*Math.cos(time/h);
         let t3 =-24+24*Math.cos(time/h + 1.5);
         let t4 =-24-24*Math.cos(time/h +1.5);
+
+        let r = -24+24*Math.cos(time/h - 0.75);
+        let r2 =-24-24*Math.cos(time/h - 0.75);
+        //let r3 =-24+24*Math.cos(time/h + .75);
+        //let r4 =-24-24*Math.cos(time/h + .75);
                 
-        let r = -24+24*Math.cos(time/-2.5);
+        //let r = -24+24*Math.cos(time/-2.5);
         //move the logs across the screen
         model_transform2 = model_transform2.times(Mat4.translation(t,0,0)); 
         model_transform3 = model_transform3.times(Mat4.translation(t2,0,0)); 
@@ -363,8 +382,10 @@ export class project extends Base_Scene {
         model_transform5 = model_transform5.times(Mat4.rotation(Math.PI * time, 0, 0, 1));
 
         //move the rocks across the screen
-        rock_transform1 = rock_transform1.times(Mat4.translation(-24-24*Math.cos(time/h),0,0)); 
-        rock_transform2 = rock_transform2.times(Mat4.translation(-24+24*Math.cos(time/h+ 1.5),0,0)); 
+        rock_transform1 = rock_transform1.times(Mat4.translation(r,0,0)); 
+        rock_transform2 = rock_transform2.times(Mat4.translation(r2,0,0));
+        //rock_transform3 = rock_transform3.times(Mat4.translation(r3,0,0)); 
+        //rock_transform4 = rock_transform4.times(Mat4.translation(r4,0,0)); 
 
         this.obstacles_model_transform_vector[0] = model_transform2;
         this.obstacles_model_transform_vector[1] = model_transform3;
@@ -373,6 +394,8 @@ export class project extends Base_Scene {
 
         this.rock_transform_vector[0] = rock_transform1;
         this.rock_transform_vector[1] = rock_transform2;
+        //this.rock_transform_vector[1] = rock_transform3;
+        //this.rock_transform_vector[3] = rock_transform4;
         
         let len = this.obstacles_model_transform_vector.length;
         let len2 = this.rock_transform_vector.length;
@@ -387,40 +410,47 @@ export class project extends Base_Scene {
             this.rock_is_showing_vector[i] = false;
         }
 
-        if (-(24/2.5)*Math.sin(time/h) <= 0 )
+        if (-(24/h)*Math.sin(time/h) <= 0 )
         {
             this.shapes.cube.draw(context,program_state,model_transform2,this.materials.log_texture);
             this.obstacles_is_showing_vector[0] = true;
         }
-        //rock
-        else{
-            this.shapes.sphere.draw(context,program_state,rock_transform1,this.materials.rock_texture);
-            this.rock_is_showing_vector[0] = true;
-        }
-
-        if ((24/2.5)*Math.sin(time/h) <= 0 )
+        
+        if ((24/h)*Math.sin(time/h) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform3,this.materials.log_texture);
              this.obstacles_is_showing_vector[1] = true;
         }
 
 
-        if (-(24/2.5)*Math.sin(time/h+1.5) <= 0 )
+        if (-(24/h)*Math.sin(time/h+1.5) <= 0 )
         {
              this.shapes.cube.draw(context,program_state,model_transform4,this.materials.log_texture);
              this.obstacles_is_showing_vector[2] = true;
         }
-        if ((24/2.5)*Math.sin(time/h+1.5) <= 0 )
+        if ((24/h)*Math.sin(time/h+1.5) <= 0 )
         {
             this.shapes.cube.draw(context,program_state,model_transform5,this.materials.log_texture);
             this.obstacles_is_showing_vector[3] = true;
         }
-        //rock 
-        else{
+        //rock
+        if ((24/h)*Math.sin(time/h - 0.75) >= 0 ){
+            this.shapes.sphere.draw(context,program_state,rock_transform1,this.materials.rock_texture);
+            this.rock_is_showing_vector[0] = true;
+        }
+        if (-(24/h)*Math.sin(time/h-0.75) >= 0 ){
             this.shapes.sphere.draw(context,program_state,rock_transform2,this.materials.rock_texture);
             this.rock_is_showing_vector[1] = true;
         }
-
+        /*if ((24/h)*Math.sin(time/h + 0.75) >= 0 ){
+            this.shapes.sphere.draw(context,program_state,rock_transform3,this.materials.rock_texture);
+            this.rock_is_showing_vector[0] = true;
+        }
+        if (-(24/h)*Math.sin(time/h + 0.75) >= 0 ){
+            this.shapes.sphere.draw(context,program_state,rock_transform4,this.materials.rock_texture);
+            this.rock_is_showing_vector[0] = true;
+        }*/
+       
     }
 
     //returns true if dino collides with anything
