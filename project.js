@@ -1,6 +1,9 @@
 import {defs, tiny} from './common.js';
 import {Shape_From_File} from './load-obj.js';
 
+import {Color_Phong_Shader, Shadow_Textured_Phong_Shader,
+    Depth_Texture_Shader_2D, Buffered_Texture, LIGHT_DEPTH_TEX_SIZE} from './shadow-demo-shaders.js'
+    
 const {Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture, } = tiny;
 
 const {Cube, Axis_Arrows, Textured_Phong} = defs
@@ -116,8 +119,101 @@ class Base_Scene extends Scene {
             }),
         };
         this.initial_camera_location = Mat4.translation(-10, 0, 0).times(Mat4.look_at(vec3(0, 5, 20), vec3(0, 5, 0), vec3(0, 1, 0)));
+        
 
+        // For the floor or other plain objects
+        this.floor = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(1, 1, 1, 1), ambient: .3, diffusivity: 0.6, specularity: 0.4, smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        })
+        // For the first pass
+        this.pure = new Material(new Color_Phong_Shader(), {
+        })
+        // For light source
+        this.light_src = new Material(new defs.Phong_Shader(), {
+            color: color(1, 1, 1, 1), ambient: 1, diffusivity: 0, specularity: 0
+        });
+        // For depth texture display
+        this.depth_tex =  new Material(new Depth_Texture_Shader_2D(), {
+            color: color(0, 0, .0, 1),
+            ambient: 1, diffusivity: 0, specularity: 0, texture: null
+        });
+
+        // To make sure texture initialization only does once
+        this.init_ok = false;
     }
+
+
+
+    texture_buffer_init(gl) {
+        // Depth Texture
+        this.lightDepthTexture = gl.createTexture();
+        // Bind it to TinyGraphics
+        this.light_depth_texture = new Buffered_Texture(this.lightDepthTexture);
+        this.stars.light_depth_texture = this.light_depth_texture
+        this.floor.light_depth_texture = this.light_depth_texture
+
+        this.lightDepthTextureSize = LIGHT_DEPTH_TEX_SIZE;
+        gl.bindTexture(gl.TEXTURE_2D, this.lightDepthTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,      // target
+            0,                  // mip level
+            gl.DEPTH_COMPONENT, // internal format
+            this.lightDepthTextureSize,   // width
+            this.lightDepthTextureSize,   // height
+            0,                  // border
+            gl.DEPTH_COMPONENT, // format
+            gl.UNSIGNED_INT,    // type
+            null);              // data
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Depth Texture Buffer
+        this.lightDepthFramebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,       // target
+            gl.DEPTH_ATTACHMENT,  // attachment point
+            gl.TEXTURE_2D,        // texture target
+            this.lightDepthTexture,         // texture
+            0);                   // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // create a color texture of the same size as the depth texture
+        // see article why this is needed_
+        this.unusedTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.unusedTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            this.lightDepthTextureSize,
+            this.lightDepthTextureSize,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null,
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // attach it to the framebuffer
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,        // target
+            gl.COLOR_ATTACHMENT0,  // attachment point
+            gl.TEXTURE_2D,         // texture target
+            this.unusedTexture,         // texture
+            0);                    // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+
+
+
 
     display(context, program_state) {
         
