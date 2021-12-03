@@ -53,8 +53,10 @@ class Base_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
-            dino: new Material(new defs.Phong_Shader(),
-                {ambient: 0.3, color: hex_color("#00FF00")}),   //color is yellow
+            dino: new Material(new Shadow_Textured_Phong_Shader(1),
+                {ambient: 0.3, color: hex_color("#00FF00"),
+                color_texture: null,
+                light_depth_texture: null}),   //color is yellow
             
             start_texture: new Material(new Textured_Phong(),{
                 color: hex_color("#000000"),
@@ -64,12 +66,14 @@ class Base_Scene extends Scene {
                 texture: new Texture("assets/start_screen.png")
             }),
 
-            grass_texture: new Material(new Textured_Phong(),{
+            grass_texture: new Material(new Shadow_Textured_Phong_Shader(1),{
                 color: hex_color("#000000"),
                 ambient: 0.5,
                 diffusivity: 0.1,
                 specularity: 0.1,
-                texture: new Texture("assets/grass_texture.jpg")
+                smoothness: 64,
+                color_texture: new Texture("assets/grass_texture.jpg"),
+                light_depth_texture: null
             }),
 
             game_over_texture: new Material(new Textured_Phong(),{
@@ -151,7 +155,7 @@ class Base_Scene extends Scene {
         this.lightDepthTexture = gl.createTexture();
         // Bind it to TinyGraphics
         this.light_depth_texture = new Buffered_Texture(this.lightDepthTexture);
-        this.stars.light_depth_texture = this.light_depth_texture
+        // this.stars.light_depth_texture = this.light_depth_texture
         this.floor.light_depth_texture = this.light_depth_texture
 
         this.lightDepthTextureSize = LIGHT_DEPTH_TEX_SIZE;
@@ -235,19 +239,19 @@ class Base_Scene extends Scene {
         //hide light source from view
         if(this.gameOver)
         {
-            const light_position = vec4(0, -10, -5, 1);
-            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
+            this.light_position = vec4(0, -10, -5, 1);
+            program_state.lights = [new Light(this.light_position, color(1, 1, 1, 1), 5)];
         }
         // *** Lights: *** Values of vector or point lights.
         else if(t >= 45) //draw "moon" cycle
         {
-            const light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
-            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 5)];
+            this.light_position = vec4(10+(-17)*Math.cos(Math.PI*(t-45)/15), -6+21*Math.sin(Math.PI*(t-45)/15), -5, 1);
+            program_state.lights = [new Light(this.light_position, color(1, 1, 1, 1), 5)];
         }
         else    //draw sun cycle
         {
-            const light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
-            program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+            this.light_position = vec4(10+(-17)*Math.cos(Math.PI*t/45), -6+21*Math.sin(Math.PI*t/45), -5, 1);
+            program_state.lights = [new Light(this.light_position, color(1, 1, 1, 1), 1000)];
         }
     }
 }
@@ -305,7 +309,7 @@ export class project extends Base_Scene {
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.start_texture);
     }
 
-    drawDino(context, program_state, time)
+    drawDino(context, program_state, time, shadow_pass)
     {
         let model_transform = Mat4.identity();
         model_transform = model_transform
@@ -325,10 +329,10 @@ export class project extends Base_Scene {
         this.dinoPosition[0] = model_transform[0][3];   //get x position
         this.dinoPosition[1] = model_transform[1][3];   //get y positiom
         
-        this.shapes.dino.draw(context, program_state, model_transform, this.materials.dino);
+        this.shapes.dino.draw(context, program_state, model_transform, shadow_pass? this.materials.dino : this.pure);
     }
 
-    drawGrass(context, program_state)
+    drawGrass(context, program_state, shadow_pass)
     {
       
         let model_transform = Mat4.identity();
@@ -339,7 +343,7 @@ export class project extends Base_Scene {
 
         model_transform = model_transform.times(grassTranslation).times(grassScale);
 
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.grass_texture);
+        this.shapes.cube.draw(context, program_state, model_transform, shadow_pass? this.materials.grass_texture: this.pure);
     }
 
     drawbackground(context, program_state, time)
@@ -580,6 +584,52 @@ export class project extends Base_Scene {
         }
     }
 
+    render_scene(context, program_state, shadow_pass, draw_light_source=false, draw_shadow=false) {
+        // shadow_pass: true if this is the second pass that draw the shadow.
+        // draw_light_source: true if we want to draw the light source.
+        // draw_shadow: true if we want to draw the shadow
+
+        let light_position = this.light_position;
+        let light_color = this.light_color;
+        const t = program_state.animation_time;
+
+        program_state.draw_shadow = draw_shadow;
+
+        if (draw_light_source && shadow_pass) {
+            // this.shapes.sphere.draw(context, program_state,
+            //     Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.5,.5,.5)),
+            //     this.light_src.override({color: light_color}));
+        }
+        this.drawDino(context, program_state, t, shadow_pass);
+
+        this.drawGrass(context, program_state, shadow_pass); 
+
+        // for (let i of [-1, 1]) { // Spin the 3D model shapes as well.
+        //     const model_transform = Mat4.translation(2 * i, 3, 0)
+        //         .times(Mat4.rotation(t / 1000, -1, 2, 0))
+        //         .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
+        //     this.shapes.teapot.draw(context, program_state, model_transform, shadow_pass? this.stars : this.pure);
+        // }
+
+        // let model_trans_floor = Mat4.scale(8, 0.1, 5);
+        // let model_trans_ball_0 = Mat4.translation(0, 1, 0);
+        // let model_trans_ball_1 = Mat4.translation(5, 1, 0);
+        // let model_trans_ball_2 = Mat4.translation(-5, 1, 0);
+        // let model_trans_ball_3 = Mat4.translation(0, 1, 3);
+        // let model_trans_ball_4 = Mat4.translation(0, 1, -3);
+        // let model_trans_wall_1 = Mat4.translation(-8, 2 - 0.1, 0).times(Mat4.scale(0.33, 2, 5));
+        // let model_trans_wall_2 = Mat4.translation(+8, 2 - 0.1, 0).times(Mat4.scale(0.33, 2, 5));
+        // let model_trans_wall_3 = Mat4.translation(0, 2 - 0.1, -5).times(Mat4.scale(8, 2, 0.33));
+        // this.shapes.cube.draw(context, program_state, model_trans_floor, shadow_pass? this.floor : this.pure);
+        // this.shapes.cube.draw(context, program_state, model_trans_wall_1, shadow_pass? this.floor : this.pure);
+        // this.shapes.cube.draw(context, program_state, model_trans_wall_2, shadow_pass? this.floor : this.pure);
+        // this.shapes.cube.draw(context, program_state, model_trans_wall_3, shadow_pass? this.floor : this.pure);
+        // this.shapes.sphere.draw(context, program_state, model_trans_ball_0, shadow_pass? this.floor : this.pure);
+        // this.shapes.sphere.draw(context, program_state, model_trans_ball_1, shadow_pass? this.floor : this.pure);
+        // this.shapes.sphere.draw(context, program_state, model_trans_ball_2, shadow_pass? this.floor : this.pure);
+        // this.shapes.sphere.draw(context, program_state, model_trans_ball_3, shadow_pass? this.floor : this.pure);
+        // this.shapes.sphere.draw(context, program_state, model_trans_ball_4, shadow_pass? this.floor : this.pure);
+    }
     
 
     display(context, program_state) {
@@ -587,11 +637,52 @@ export class project extends Base_Scene {
 
         program_state.set_camera(this.initial_camera_location);
         const time = this.time = program_state.animation_time / 1000;
+        const gl = context.context;
 
+        if (!this.init_ok) {
+            const ext = gl.getExtension('WEBGL_depth_texture');
+            if (!ext) {
+                return alert('need WEBGL_depth_texture');  // eslint-disable-line
+            }
+            this.texture_buffer_init(gl);
+
+            this.init_ok = true;
+        }
+
+        this.light_view_target = vec4(0, 0, 0, 1);
+        this.light_field_of_view = 130 * Math.PI / 180; // 130 degree
+
+        
+
+        // Step 1: set the perspective and camera to the POV of light
+        const light_view_mat = Mat4.look_at(
+            vec3(this.light_position[0], this.light_position[1], this.light_position[2]),
+            vec3(this.light_view_target[0], this.light_view_target[1], this.light_view_target[2]),
+            vec3(0, 1, 0), // assume the light to target will have a up dir of +y, maybe need to change according to your case
+        );
+        const light_proj_mat = Mat4.perspective(this.light_field_of_view, 1, 0.5, 500);
+        // Bind the Depth Texture Buffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.viewport(0, 0, this.lightDepthTextureSize, this.lightDepthTextureSize);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // Prepare uniforms
+        program_state.light_view_mat = light_view_mat;
+        program_state.light_proj_mat = light_proj_mat;
+        program_state.light_tex_mat = light_proj_mat;
+        program_state.view_mat = light_view_mat;
+        program_state.projection_transform = light_proj_mat;
+        this.render_scene(context, program_state, false,false, false);
+
+        // Step 2: unbind, draw to the canvas
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        program_state.view_mat = program_state.camera_inverse;
+        program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.5, 500);
+        this.render_scene(context, program_state, true,true, true);
         
         this.game_time += 1/20; 
 
-        console.log(this.game_time);
+        // console.log(this.game_time);
 
         if (this.game_time < 50){
             this.level = 1; 
@@ -620,9 +711,9 @@ export class project extends Base_Scene {
         
         if(this.startScreen)
         {
-            this.drawDino(context, program_state, time);
+            // this.drawDino(context, program_state, time);
             this.drawStartScreen(context, program_state);
-            this.drawGrass(context, program_state); 
+            // this.drawGrass(context, program_state); 
             this.drawbackground(context, program_state, time); 
         }
         else if(!this.gameOver)
